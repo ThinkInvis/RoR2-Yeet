@@ -1,0 +1,10 @@
+{
+    "name": "Yeet",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/ThinkInvis/RoR2-Yeet",
+    "description": "Toss all your items! To other players, or right under a boss, or off a cliff...",
+    "dependencies": [
+		"bbepis-BepInExPack-3.2.0",
+		"tristanmcpherson-R2API-2.4.10"
+    ]
+}
