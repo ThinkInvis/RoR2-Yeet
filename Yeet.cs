@@ -16,7 +16,7 @@ namespace ThinkInvisible.Yeet {
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [R2APISubmoduleDependency(nameof(CommandHelper))]
     public class YeetPlugin:BaseUnityPlugin {
-        public const string ModVer = "1.0.0";
+        public const string ModVer = "1.1.0";
         public const string ModName = "Yeet";
         public const string ModGuid = "com.ThinkInvisible.Yeet";
 
@@ -36,17 +36,17 @@ namespace ThinkInvisible.Yeet {
                 "Time (in seconds) to prevent picking an item back up after dropping it. Does not apply to other players, only the dropper. Set to <= 0 to disable.",
                 new AcceptableValueRange<float>(0f,float.MaxValue)));*/
 
-            var cfgLowThrowForce = cfgFile.Bind(new ConfigDefinition("Yeet", "LowThrowForce"), 30f, new ConfigDescription(
+            var cfgLowThrowForce = cfgFile.Bind(new ConfigDefinition("YeetServer", "LowThrowForce"), 30f, new ConfigDescription(
                 "Minimum speed, in player view direction, to add to droplets for dropped items.",
                 new AcceptableValueRange<float>(0f,float.MaxValue)));
-            var cfgHighThrowForce = cfgFile.Bind(new ConfigDefinition("Yeet", "HighThrowForce"), 150f, new ConfigDescription(
+            var cfgHighThrowForce = cfgFile.Bind(new ConfigDefinition("YeetServer", "HighThrowForce"), 150f, new ConfigDescription(
                 "Maximum speed, in player view direction, to add to droplets for dropped items.",
                 new AcceptableValueRange<float>(0f,float.MaxValue)));
-            var cfgHighThrowTime = cfgFile.Bind(new ConfigDefinition("Yeet", "HighThrowTime"), 2f, new ConfigDescription(
+            var cfgHighThrowTime = cfgFile.Bind(new ConfigDefinition("YeetClient", "HoldTime"), 2f, new ConfigDescription(
                 "Click hold time (sec) required to reach HighThrowForce.",
                 new AcceptableValueRange<float>(0f,float.MaxValue)));
 
-            var cfgPreventLunar = cfgFile.Bind(new ConfigDefinition("Yeet", "PreventLunar"), true, new ConfigDescription(
+            var cfgPreventLunar = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventLunar"), true, new ConfigDescription(
                 "If true, lunar items cannot be dropped (to preserve the consequences of picking one up)."));
             
             //regrabCooldown = cfgRegrabCooldown.Value;
@@ -69,6 +69,10 @@ namespace ThinkInvisible.Yeet {
         private static void ConCmdYeet(ConCommandArgs args) {
             if(!args.senderBody) {
                 _logger.LogError("ConCmdYeet: called by nonexistent player!");
+                return;
+            }
+            if(args.Count < 1) {
+                _logger.LogError("ConCmdYeet: not enough arguments! Need at least 1 (item ID), received 0.");
                 return;
             }
             ItemIndex ind;
@@ -99,7 +103,10 @@ namespace ThinkInvisible.Yeet {
                 }
             }
 
-            if(args.senderBody.inventory.GetItemCount(ind) < 1) return;
+            if(args.senderBody.inventory.GetItemCount(ind) < 1) {
+                _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
+                return;
+            }
 
             var idef = ItemCatalog.GetItemDef(ind);
             if(idef.hidden || (idef.tier == ItemTier.Lunar && preventLunar)) return;
@@ -128,10 +135,11 @@ namespace ThinkInvisible.Yeet {
             float totalTime = Time.unscaledTime - holdTime;
             var icon = this.GetComponentInParent<RoR2.UI.ItemIcon>();
             var ind = icon.GetFieldValue<ItemIndex>("itemIndex");
-			if(NetworkUser.readOnlyLocalPlayersList.Count > 0)
+			if(NetworkUser.readOnlyLocalPlayersList.Count > 0) {
                 //RoR2.Console.instance.RunClientCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet", new string[]{((int)ind).ToString(), totalTime.ToString("N3")});
+                YeetPlugin._logger.LogMessage("Inventory click event: submitting ConCmd. First arg is \"" + ((int)ind).ToString() + "\".");
                 RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet " + ((int)ind).ToString() + " " + totalTime.ToString("N4"));
-            else
+            } else
                 YeetPlugin._logger.LogError("Received inventory click event with no active local players!");
         }
     }
