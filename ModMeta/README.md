@@ -19,6 +19,10 @@ Has a config option to prevent lunar items from being dropped (enabled by defaul
 
 ## Changelog
 
+**1.1.2**
+
+- Fixed apparent compatibility issue with other mods (caused by improper console command setup).
+
 **1.1.1**
 
 - Added compatibility for TILER2.FakeInventory.

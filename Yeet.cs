@@ -14,7 +14,7 @@ namespace ThinkInvisible.Yeet {
     [BepInDependency("com.ThinkInvisible.TILER2", BepInDependency.DependencyFlags.SoftDependency)]
     [R2APISubmoduleDependency(nameof(CommandHelper))]
     public class YeetPlugin:BaseUnityPlugin {
-        public const string ModVer = "1.1.1";
+        public const string ModVer = "1.1.2";
         public const string ModName = "Yeet";
         public const string ModGuid = "com.ThinkInvisible.Yeet";
 
