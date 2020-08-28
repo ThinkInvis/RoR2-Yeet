@@ -109,7 +109,7 @@ namespace ThinkInvisible.Yeet {
             }
 
             var idef = ItemCatalog.GetItemDef(ind);
-            if(idef.hidden || (idef.tier == ItemTier.Lunar && preventLunar)) return;
+            if(idef.hidden || !idef.canRemove || (idef.tier == ItemTier.Lunar && preventLunar)) return;
             args.senderBody.inventory.RemoveItem(ind);
             
             float throwForce = lowThrowForce;
