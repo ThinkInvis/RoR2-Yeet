@@ -136,12 +136,11 @@ namespace ThinkInvisible.Yeet {
 		}
         void IPointerUpHandler.OnPointerUp(PointerEventData eventData) {
             float totalTime = Time.unscaledTime - holdTime;
-            var icon = this.GetComponentInParent<RoR2.UI.ItemIcon>();
-            var ind = icon.GetFieldValue<ItemIndex>("itemIndex");
+            var ind = ((int)GetComponentInParent<RoR2.UI.ItemIcon>().itemIndex).ToString();
 			if(NetworkUser.readOnlyLocalPlayersList.Count > 0) {
                 //RoR2.Console.instance.RunClientCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet", new string[]{((int)ind).ToString(), totalTime.ToString("N3")});
-                YeetPlugin._logger.LogMessage("Inventory click event: submitting ConCmd. First arg is \"" + ((int)ind).ToString() + "\".");
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet " + ((int)ind).ToString() + " " + totalTime.ToString("N4"));
+                YeetPlugin._logger.LogMessage("Inventory click event: submitting ConCmd. First arg is \"" + ind + "\".");
+                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet " + ind + " " + totalTime.ToString("N4"));
             } else
                 YeetPlugin._logger.LogError("Received inventory click event with no active local players!");
         }
