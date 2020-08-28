@@ -1,10 +1,7 @@
 ﻿using RoR2;
 using BepInEx;
-using MonoMod.Cil;
 using R2API.Utils;
 using UnityEngine;
-using Mono.Cecil.Cil;
-using System;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using System.Linq;
@@ -14,6 +11,7 @@ namespace ThinkInvisible.Yeet {
     
     [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(ModGuid, ModName, ModVer)]
+    [BepInDependency("com.ThinkInvisible.TILER2", BepInDependency.DependencyFlags.SoftDependency)]
     [R2APISubmoduleDependency(nameof(CommandHelper))]
     public class YeetPlugin:BaseUnityPlugin {
         public const string ModVer = "1.1.0";
@@ -103,7 +101,12 @@ namespace ThinkInvisible.Yeet {
                 }
             }
 
-            if(args.senderBody.inventory.GetItemCount(ind) < 1) {
+            int count;
+            if(Compat_TILER2.enabled)
+                count = Compat_TILER2.GetRealItemCount(args.senderBody.inventory, ind);
+            else
+                count = args.senderBody.inventory.GetItemCount(ind);
+            if(count < 1) {
                 _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
                 return;
             }
