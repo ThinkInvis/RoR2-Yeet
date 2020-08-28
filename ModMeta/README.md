@@ -19,6 +19,12 @@ Has a config option to prevent lunar items from being dropped (enabled by defaul
 
 ## Changelog
 
+**1.1.1**
+
+- Added compatibility for TILER2.FakeInventory.
+- Fixed being able to drop unremovable items.
+- Updated dependencies for RoR2 1.0.
+
 **1.1.0**
 
 - Added some extra console logging to try to track down an issue with inventory clicking.
