@@ -55,6 +55,8 @@ namespace ThinkInvisible.Yeet {
             preventLunar = cfgPreventLunar.Value;
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
+
+            CommandHelper.AddToConsoleWhenReady();
         }
 
         private void ItemIcon_Awake(On.RoR2.UI.ItemIcon.orig_Awake orig, RoR2.UI.ItemIcon self) {
