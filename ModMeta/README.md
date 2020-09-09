@@ -2,22 +2,27 @@
 
 ## Description
 
-Clicking an item in your inventory will remove one stack of it and forcefully toss it in the direction you're aiming. Functions on both client and server by way of the `yeet [item name/index]` console command, which may also be used on its own.
+Clicking an item or equipment in your inventory will remove one stack of it and forcefully toss it in the direction you're aiming. Functions on both client and server by way of the `yeet [item name/index]` console command, which may also be used on its own.
 
 Holding the mouse button down for longer will throw the item farther.
 
 Has a config option to prevent lunar items from being dropped (enabled by default).
 
+Has a config option to disable all items from being dropped, and one for equipment.
+
 ## Issues/TODO
 
-- Support for dropping equipment.
 - Could do with some sort of UI indicator that items can be clicked.
 - "Drop last valid pickup" command/keybind.
 - Primary skill is fired while clicking in inventory to drop items (the alternative is 'sticky' UI focus when adding buttons; picked lesser of two evils for now).
-- Inventory clicking may fail to work under as-of-yet unknown circumstances.
 - See the GitHub repo for more!
 
 ## Changelog
+
+**1.2.0**
+
+- Added support for dropping equipment.
+- Added configs for disabling equipment dropping and/or item dropping.
 
 **1.1.2**
 
