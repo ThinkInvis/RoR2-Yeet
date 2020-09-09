@@ -4,7 +4,6 @@ using TILER2;
 
 namespace ThinkInvisible.Yeet {
     static class Compat_TILER2 {
-        //taken from https://github.com/harbingerofme/DebugToolkit/blob/master/Code/DT-Commands/Money.cs
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         internal static int GetRealItemCount(Inventory inv, ItemIndex ind) {
             var fakeInv = inv.GetComponent<FakeInventory>();
