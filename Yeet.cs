@@ -23,6 +23,8 @@ namespace ThinkInvisible.Yeet {
         static float highThrowForce = 100f;
         static float highThrowTime = 2f;
         static bool preventLunar = true;
+        static bool preventEquipment = false;
+        static bool preventItems = false;
 
         internal static ManualLogSource _logger;
         
@@ -46,6 +48,10 @@ namespace ThinkInvisible.Yeet {
 
             var cfgPreventLunar = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventLunar"), true, new ConfigDescription(
                 "If true, lunar items cannot be dropped (to preserve the consequences of picking one up)."));
+            var cfgPreventEquipment = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventEquipment"), false, new ConfigDescription(
+                "If true, equipment items cannot be dropped."));
+            var cfgPreventItems = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventItems"), false, new ConfigDescription(
+                "If true, all non-equipment items cannot be dropped."));
             
             //regrabCooldown = cfgRegrabCooldown.Value;
             lowThrowForce = cfgLowThrowForce.Value;
@@ -53,8 +59,11 @@ namespace ThinkInvisible.Yeet {
             highThrowTime = cfgHighThrowTime.Value;
 
             preventLunar = cfgPreventLunar.Value;
+            preventEquipment = cfgPreventEquipment.Value;
+            preventItems = cfgPreventItems.Value;
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
+            On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
 
             CommandHelper.AddToConsoleWhenReady();
         }
@@ -64,7 +73,14 @@ namespace ThinkInvisible.Yeet {
             self.gameObject.AddComponent<YeetButton>();
         }
 
-        [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name.")]
+        private void EquipmentIcon_Update(On.RoR2.UI.EquipmentIcon.orig_Update orig, RoR2.UI.EquipmentIcon self) {
+            orig(self);
+            if(self.gameObject.GetComponent<YeetButton>()) return;
+            var btn = self.gameObject.AddComponent<YeetButton>();
+            btn.isEquipment = true;
+        }
+
+        [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void ConCmdYeet(ConCommandArgs args) {
             if(!args.senderBody) {
@@ -75,74 +91,114 @@ namespace ThinkInvisible.Yeet {
                 _logger.LogError("ConCmdYeet: not enough arguments! Need at least 1 (item ID), received 0.");
                 return;
             }
-            ItemIndex ind;
+
+            bool isEquipment = args.TryGetArgBool(1) ?? false;
+
+            if(isEquipment ? preventEquipment : preventItems) return;
+
+            int rawInd;
             string itemSearch = args.TryGetArgString(0);
             if(itemSearch == null) {
                 _logger.LogError("ConCmdYeet: could not read first argument (item ID)!");
                 return;
             }
-            else if(int.TryParse(itemSearch, out int rawInd)) {
-                ind = (ItemIndex)rawInd;
-                if(!ItemCatalog.IsIndexValid(ind)) {
-                    _logger.LogError("ConCmdYeet: first argument (item ID as integer ItemIndex) is out of range; no item with that ID exists!");
-                    return;
+            else if(int.TryParse(itemSearch, out rawInd)) {
+                if(isEquipment) {
+                    if(!EquipmentCatalog.IsIndexValid((EquipmentIndex)rawInd)) {
+                        _logger.LogError("ConCmdYeet: first argument (equipment ID as integer EquipmentIndex) is out of range; no equipment with that ID exists!");
+                        return;
+                    }
+                } else {
+                    if(!ItemCatalog.IsIndexValid((ItemIndex)rawInd)) {
+                        _logger.LogError("ConCmdYeet: first argument (item ID as integer ItemIndex) is out of range; no item with that ID exists!");
+                        return;
+                    }
                 }
             } else {
-                var results = ItemCatalog.allItems.Where((searchInd)=>{
-                    var iNameToken = ItemCatalog.GetItemDef(searchInd).nameToken;
-                    var iName = Language.GetString(iNameToken);
-                    return iName.ToUpper().Contains(itemSearch.ToUpper());
-                });
-                if(results.Count() < 1) {
-                    _logger.LogError("ConCmdYeet: first argument (item ID as string ItemName) not found in ItemCatalog; no item with a name containing that string exists!");
-                    return;
+                if(isEquipment) {
+                    var results = EquipmentCatalog.allEquipment.Where((searchInd)=>{
+                        var iNameToken = EquipmentCatalog.GetEquipmentDef(searchInd).nameToken;
+                        var iName = Language.GetString(iNameToken);
+                        return iName.ToUpper().Contains(itemSearch.ToUpper());
+                    });
+                    if(results.Count() < 1) {
+                        _logger.LogError("ConCmdYeet: first argument (equipment ID as string EquipmentName) not found in EquipmentCatalog; no equipment with a name containing that string exists!");
+                        return;
+                    } else {
+                        if(results.Count() > 1)
+                            _logger.LogWarning("ConCmdYeet: first argument (item ID as string EquipmentName) matched multiple equipments; using first.");
+                        rawInd = (int)results.First();
+                    }
                 } else {
-                    if(results.Count() > 1)
-                        _logger.LogWarning("ConCmdYeet: first argument (item ID as string ItemName) matched multiple items; using first.");
-                    ind = results.First();
+                    var results = ItemCatalog.allItems.Where((searchInd)=>{
+                        var iNameToken = ItemCatalog.GetItemDef(searchInd).nameToken;
+                        var iName = Language.GetString(iNameToken);
+                        return iName.ToUpper().Contains(itemSearch.ToUpper());
+                    });
+                    if(results.Count() < 1) {
+                        _logger.LogError("ConCmdYeet: first argument (item ID as string ItemName) not found in ItemCatalog; no item with a name containing that string exists!");
+                        return;
+                    } else {
+                        if(results.Count() > 1)
+                            _logger.LogWarning("ConCmdYeet: first argument (item ID as string ItemName) matched multiple items; using first.");
+                        rawInd = (int)results.First();
+                    }
                 }
             }
 
-            int count;
-            if(Compat_TILER2.enabled)
-                count = Compat_TILER2.GetRealItemCount(args.senderBody.inventory, ind);
-            else
-                count = args.senderBody.inventory.GetItemCount(ind);
-            if(count < 1) {
-                _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
-                return;
-            }
+            float throwForce = Mathf.Lerp(lowThrowForce, highThrowForce, Mathf.Clamp01(args.TryGetArgFloat(2) ?? 0f));
 
-            var idef = ItemCatalog.GetItemDef(ind);
-            if(idef.hidden || !idef.canRemove || (idef.tier == ItemTier.Lunar && preventLunar)) return;
-            args.senderBody.inventory.RemoveItem(ind);
+            if(isEquipment) {
+                if(args.senderBody.inventory.GetEquipmentIndex() != (EquipmentIndex) rawInd) {
+                    _logger.LogWarning("ConCmdYeet: someone's trying to drop an equipment they don't have");
+                    return;
+                }
+
+                var edef = EquipmentCatalog.GetEquipmentDef((EquipmentIndex)rawInd);
+                args.senderBody.inventory.SetEquipmentIndex(EquipmentIndex.None);
+                args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
             
-            float throwForce = lowThrowForce;
-            if(args.Count > 1) {
-                var tfarg = args.TryGetArgFloat(1);
-                if(tfarg.HasValue) 
-                    throwForce = Mathf.Lerp(lowThrowForce, highThrowForce, Mathf.Clamp01(tfarg.Value));
-            }
+                PickupDropletController.CreatePickupDroplet(
+                    PickupCatalog.FindPickupIndex((EquipmentIndex)rawInd),
+                    args.senderBody.inputBank.aimOrigin,
+                    args.senderBody.inputBank.aimDirection * throwForce);
+            } else {
+                int count;
+                if(Compat_TILER2.enabled)
+                    count = Compat_TILER2.GetRealItemCount(args.senderBody.inventory, (ItemIndex)rawInd);
+                else
+                    count = args.senderBody.inventory.GetItemCount((ItemIndex)rawInd);
+                if(count < 1) {
+                    _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
+                    return;
+                }
 
-            PickupDropletController.CreatePickupDroplet(
-                PickupCatalog.FindPickupIndex(ind),
-                args.senderBody.inputBank.aimOrigin,
-                args.senderBody.inputBank.aimDirection * throwForce);
+                var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
+                if(idef.hidden || !idef.canRemove || (idef.tier == ItemTier.Lunar && preventLunar)) return;
+                args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
+            
+                PickupDropletController.CreatePickupDroplet(
+                    PickupCatalog.FindPickupIndex((ItemIndex)rawInd),
+                    args.senderBody.inputBank.aimOrigin,
+                    args.senderBody.inputBank.aimDirection * throwForce);
+            }
         }
     }
     
 	public class YeetButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
         float holdTime = 0f;
+        public bool isEquipment = false;
 		void IPointerDownHandler.OnPointerDown(PointerEventData eventData) {
             holdTime = Time.unscaledTime;
 		}
         void IPointerUpHandler.OnPointerUp(PointerEventData eventData) {
             float totalTime = Time.unscaledTime - holdTime;
-            var ind = ((int)GetComponentInParent<RoR2.UI.ItemIcon>().itemIndex).ToString();
+            var ind = isEquipment
+                ? ((int)GetComponent<RoR2.UI.EquipmentIcon>().targetInventory.GetEquipmentIndex()).ToString()
+                : ((int)GetComponent<RoR2.UI.ItemIcon>().itemIndex).ToString();
 			if(NetworkUser.readOnlyLocalPlayersList.Count > 0) {
                 //RoR2.Console.instance.RunClientCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet", new string[]{((int)ind).ToString(), totalTime.ToString("N3")});
-                YeetPlugin._logger.LogMessage("Inventory click event: submitting ConCmd. First arg is \"" + ind + "\".");
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet " + ind + " " + totalTime.ToString("N4"));
+                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], $"yeet {ind} {(isEquipment ? 1 : 0)} {totalTime.ToString("N4")}");
             } else
                 YeetPlugin._logger.LogError("Received inventory click event with no active local players!");
         }
