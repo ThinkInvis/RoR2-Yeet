@@ -174,7 +174,7 @@ namespace ThinkInvisible.Yeet {
                 }
 
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
-                if(idef.hidden || !idef.canRemove || (idef.tier == ItemTier.Lunar && preventLunar)) return;
+                if(idef.hidden || !idef.canRemove || (idef.tier == ItemTier.Lunar && preventLunar) || idef.tier == ItemTier.NoTier) return;
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
             
                 PickupDropletController.CreatePickupDroplet(
