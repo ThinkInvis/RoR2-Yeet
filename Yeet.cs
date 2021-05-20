@@ -6,6 +6,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using System.Linq;
 using UnityEngine.EventSystems;
+using UnityEngine.Networking;
 
 namespace ThinkInvisible.Yeet {
     
@@ -64,8 +65,20 @@ namespace ThinkInvisible.Yeet {
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
             On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
-
+            On.RoR2.PickupDropletController.OnCollisionEnter += PickupDropletController_OnCollisionEnter;
+            
             CommandHelper.AddToConsoleWhenReady();
+        }
+
+        private void PickupDropletController_OnCollisionEnter(On.RoR2.PickupDropletController.orig_OnCollisionEnter orig, PickupDropletController self, Collision collision) {
+            bool wasCmd = false;
+            if(NetworkServer.active && self.GetComponent<PickupDropletNoCommandFlag>()) {
+                wasCmd = RunArtifactManager.enabledArtifactsEnumerable.Contains(RoR2Content.Artifacts.Command);
+                if(wasCmd) RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, false);
+            }
+            orig(self, collision);
+            if(NetworkServer.active && wasCmd)
+                RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, true);
         }
 
         private void ItemIcon_Awake(On.RoR2.UI.ItemIcon.orig_Awake orig, RoR2.UI.ItemIcon self) {
@@ -176,14 +189,19 @@ namespace ThinkInvisible.Yeet {
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
                 if(idef.hidden || !idef.canRemove || (idef.tier == ItemTier.Lunar && preventLunar) || idef.tier == ItemTier.NoTier) return;
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
-            
-                PickupDropletController.CreatePickupDroplet(
-                    PickupCatalog.FindPickupIndex((ItemIndex)rawInd),
-                    args.senderBody.inputBank.aimOrigin,
-                    args.senderBody.inputBank.aimDirection * throwForce);
+
+                var obj = GameObject.Instantiate(PickupDropletController.pickupDropletPrefab, args.senderBody.inputBank.aimOrigin, Quaternion.identity);
+                obj.AddComponent<PickupDropletNoCommandFlag>();
+                obj.GetComponent<PickupDropletController>().NetworkpickupIndex = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
+                var rbdy = obj.GetComponent<Rigidbody>();
+                rbdy.velocity = args.senderBody.inputBank.aimDirection * throwForce;
+                rbdy.AddTorque(Random.Range(150f, 120f) * Random.onUnitSphere);
+                NetworkServer.Spawn(obj);
             }
         }
     }
+
+    public class PickupDropletNoCommandFlag : MonoBehaviour {}
     
 	public class YeetButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
         float holdTime = 0f;
