@@ -19,6 +19,11 @@ Has a config option to disable all items from being dropped, and one for equipme
 
 ## Changelog
 
+**1.2.1**
+
+- Prevented tierless items from being dropped.
+- Artifact of Command no longer creates Command droplets for items dropped from a player's inventory.
+
 **1.2.0**
 
 - Added support for dropping equipment.
