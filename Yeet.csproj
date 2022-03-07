@@ -18,16 +18,21 @@
       <HintPath>..\lib\BepInEx.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="com.unity.multiplayer-hlapi.Runtime">
+      <HintPath>lib\com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="HGCSharpUtils">
       <HintPath>lib\HGCSharpUtils.dll</HintPath>
     </Reference>
-    <Reference Include="MMHOOK_Assembly-CSharp">
-      <HintPath>lib\MMHOOK_Assembly-CSharp.dll</HintPath>
-      <Private>false</Private>
+    <Reference Include="MMHOOK_RoR2">
+      <HintPath>lib\MMHOOK_RoR2.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>..\lib\Mono.Cecil.dll</HintPath>
       <Private>false</Private>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour">
+      <HintPath>lib\MonoMod.RuntimeDetour.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.Utils">
       <HintPath>..\lib\MonoMod.Utils.dll</HintPath>
@@ -36,6 +41,9 @@
     <Reference Include="R2API">
       <HintPath>..\lib\R2API\R2API.dll</HintPath>
       <Private>false</Private>
+    </Reference>
+    <Reference Include="RoR2">
+      <HintPath>lib\RoR2.dll</HintPath>
     </Reference>
     <Reference Include="TILER2">
       <HintPath>..\TILER2\Build\TILER2\TILER2.dll</HintPath>
@@ -50,10 +58,6 @@
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\lib\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.Networking">
-      <HintPath>..\lib\UnityEngine.Networking.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">

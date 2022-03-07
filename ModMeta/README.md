@@ -10,6 +10,8 @@ Has a config option to prevent lunar items from being dropped (enabled by defaul
 
 Has a config option to disable all items from being dropped, and one for equipment.
 
+Has a config option to drop Command droplets instead of items while the Artifact of Command is active.
+
 ## Issues/TODO
 
 - Could do with some sort of UI indicator that items can be clicked.
