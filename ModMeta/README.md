@@ -19,6 +19,11 @@ Has a config option to disable all items from being dropped, and one for equipme
 
 ## Changelog
 
+**1.2.2**
+
+- Updated dependencies for RoR2 Expansion 1 (SotV).
+- Added a config for dropping items as Command droplets while Artifact of Command is enabled (restores pre-1.2.1 behavior).
+
 **1.2.1**
 
 - Prevented tierless items from being dropped.
