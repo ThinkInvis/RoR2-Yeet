@@ -26,6 +26,7 @@ namespace ThinkInvisible.Yeet {
         static bool preventLunar = true;
         static bool preventEquipment = false;
         static bool preventItems = false;
+        static bool commandExtraCheesyMode = false;
 
         internal static ManualLogSource _logger;
         
@@ -53,7 +54,10 @@ namespace ThinkInvisible.Yeet {
                 "If true, equipment items cannot be dropped."));
             var cfgPreventItems = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventItems"), false, new ConfigDescription(
                 "If true, all non-equipment items cannot be dropped."));
-            
+
+            var cfgCommandExtraCheesyMode = cfgFile.Bind(new ConfigDefinition("YeetServer", "CommandExtraCheesyMode"), false, new ConfigDescription(
+                "If true, dropped items will drop as Command pickers while Artifact of Command is enabled."));
+
             //regrabCooldown = cfgRegrabCooldown.Value;
             lowThrowForce = cfgLowThrowForce.Value;
             highThrowForce = cfgHighThrowForce.Value;
@@ -62,6 +66,7 @@ namespace ThinkInvisible.Yeet {
             preventLunar = cfgPreventLunar.Value;
             preventEquipment = cfgPreventEquipment.Value;
             preventItems = cfgPreventItems.Value;
+            commandExtraCheesyMode = cfgCommandExtraCheesyMode.Value;
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
             On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
@@ -72,7 +77,7 @@ namespace ThinkInvisible.Yeet {
 
         private void PickupDropletController_OnCollisionEnter(On.RoR2.PickupDropletController.orig_OnCollisionEnter orig, PickupDropletController self, Collision collision) {
             bool wasCmd = false;
-            if(NetworkServer.active && self.GetComponent<PickupDropletNoCommandFlag>()) {
+            if(NetworkServer.active && !commandExtraCheesyMode && self.GetComponent<PickupDropletNoCommandFlag>()) {
                 wasCmd = RunArtifactManager.enabledArtifactsEnumerable.Contains(RoR2Content.Artifacts.Command);
                 if(wasCmd) RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, false);
             }
@@ -191,7 +196,7 @@ namespace ThinkInvisible.Yeet {
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
 
                 var obj = GameObject.Instantiate(PickupDropletController.pickupDropletPrefab, args.senderBody.inputBank.aimOrigin, Quaternion.identity);
-                obj.AddComponent<PickupDropletNoCommandFlag>();
+                if(!commandExtraCheesyMode) obj.AddComponent<PickupDropletNoCommandFlag>();
                 obj.GetComponent<PickupDropletController>().NetworkpickupIndex = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
                 var rbdy = obj.GetComponent<Rigidbody>();
                 rbdy.velocity = args.senderBody.inputBank.aimDirection * throwForce;
