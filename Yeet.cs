@@ -174,7 +174,6 @@ namespace ThinkInvisible.Yeet {
 
                 var edef = EquipmentCatalog.GetEquipmentDef((EquipmentIndex)rawInd);
                 args.senderBody.inventory.SetEquipmentIndex(EquipmentIndex.None);
-                args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
             
                 PickupDropletController.CreatePickupDroplet(
                     PickupCatalog.FindPickupIndex((EquipmentIndex)rawInd),
