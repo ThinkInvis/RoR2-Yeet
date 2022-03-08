@@ -6,9 +6,7 @@ Clicking an item or equipment in your inventory will remove one stack of it and 
 
 Holding the mouse button down for longer will throw the item farther.
 
-Has a config option to prevent lunar items from being dropped (enabled by default).
-
-Has a config option to disable all items from being dropped, and one for equipment.
+Has config options to prevent dropping: lunar items (on by default), void items (on by default), all items, all equipment.
 
 Has a config option to drop Command droplets instead of items while the Artifact of Command is active.
 
@@ -20,6 +18,12 @@ Has a config option to drop Command droplets instead of items while the Artifact
 - See the GitHub repo for more!
 
 ## Changelog
+
+**1.2.3**
+
+- Fixed dropped items disappearing on spawn.
+- Fixed dropping equipment also dropping items with the same numeric ID.
+- Added a config for disabling void item dropping.
 
 **1.2.2**
 
@@ -39,20 +43,3 @@ Has a config option to drop Command droplets instead of items while the Artifact
 **1.1.2**
 
 - Fixed apparent compatibility issue with other mods (caused by improper console command setup).
-
-**1.1.1**
-
-- Added compatibility for TILER2.FakeInventory.
-- Fixed being able to drop unremovable items.
-- Updated dependencies for RoR2 1.0.
-
-**1.1.0**
-
-- Added some extra console logging to try to track down an issue with inventory clicking.
-- Default base throw force lowered.
-- Clicking and holding for up to 2 seconds increases throw force.
-- Added config options for hold time and charged throw force.
-
-**1.0.0**
-
-- Initial version. Adds a console command to throw an item by name/index, and makes clicking items on the inventory screen execute this console command automatically.
