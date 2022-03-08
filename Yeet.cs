@@ -24,6 +24,7 @@ namespace ThinkInvisible.Yeet {
         static float highThrowForce = 100f;
         static float highThrowTime = 2f;
         static bool preventLunar = true;
+        static bool preventVoid = true;
         static bool preventEquipment = false;
         static bool preventItems = false;
         static bool commandExtraCheesyMode = false;
@@ -50,6 +51,8 @@ namespace ThinkInvisible.Yeet {
 
             var cfgPreventLunar = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventLunar"), true, new ConfigDescription(
                 "If true, lunar items cannot be dropped (to preserve the consequences of picking one up)."));
+            var cfgPreventVoid = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventVoid"), true, new ConfigDescription(
+                "If true, void items cannot be dropped (to preserve the consequences of picking one up)."));
             var cfgPreventEquipment = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventEquipment"), false, new ConfigDescription(
                 "If true, equipment items cannot be dropped."));
             var cfgPreventItems = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventItems"), false, new ConfigDescription(
@@ -64,6 +67,7 @@ namespace ThinkInvisible.Yeet {
             highThrowTime = cfgHighThrowTime.Value;
 
             preventLunar = cfgPreventLunar.Value;
+            preventVoid = cfgPreventVoid.Value;
             preventEquipment = cfgPreventEquipment.Value;
             preventItems = cfgPreventItems.Value;
             commandExtraCheesyMode = cfgCommandExtraCheesyMode.Value;
@@ -191,7 +195,10 @@ namespace ThinkInvisible.Yeet {
                 }
 
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
-                if(idef.hidden || !idef.canRemove || (idef.tier == ItemTier.Lunar && preventLunar) || idef.tier == ItemTier.NoTier) return;
+                if(idef.hidden || !idef.canRemove || idef.tier == ItemTier.NoTier
+                    || (idef.tier == ItemTier.Lunar && preventLunar)
+                    || (preventVoid && (idef.tier == ItemTier.VoidTier1 || idef.tier == ItemTier.VoidTier2 || idef.tier == ItemTier.VoidTier3)))
+                    return;
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
 
                 var obj = GameObject.Instantiate(PickupDropletController.pickupDropletPrefab, args.senderBody.inputBank.aimOrigin, Quaternion.identity);
