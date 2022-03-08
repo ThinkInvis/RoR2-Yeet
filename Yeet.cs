@@ -196,7 +196,16 @@ namespace ThinkInvisible.Yeet {
 
                 var obj = GameObject.Instantiate(PickupDropletController.pickupDropletPrefab, args.senderBody.inputBank.aimOrigin, Quaternion.identity);
                 if(!commandExtraCheesyMode) obj.AddComponent<PickupDropletNoCommandFlag>();
-                obj.GetComponent<PickupDropletController>().NetworkpickupIndex = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
+                var pdcComponent = obj.GetComponent<PickupDropletController>();
+                if(pdcComponent) {
+                    var pickupIndex = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
+                    pdcComponent.NetworkpickupIndex = pickupIndex;
+                    pdcComponent.createPickupInfo = new GenericPickupController.CreatePickupInfo {
+                        rotation = Quaternion.identity,
+                        pickupIndex = pickupIndex
+                    };
+                }
+                
                 var rbdy = obj.GetComponent<Rigidbody>();
                 rbdy.velocity = args.senderBody.inputBank.aimDirection * throwForce;
                 rbdy.AddTorque(Random.Range(150f, 120f) * Random.onUnitSphere);
