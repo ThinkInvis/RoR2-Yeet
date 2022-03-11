@@ -24,6 +24,9 @@
     <Reference Include="HGCSharpUtils">
       <HintPath>lib\HGCSharpUtils.dll</HintPath>
     </Reference>
+    <Reference Include="LegacyResourcesAPI">
+      <HintPath>lib\LegacyResourcesAPI.dll</HintPath>
+    </Reference>
     <Reference Include="MMHOOK_RoR2">
       <HintPath>lib\MMHOOK_RoR2.dll</HintPath>
     </Reference>
@@ -47,6 +50,12 @@
     </Reference>
     <Reference Include="TILER2">
       <HintPath>..\TILER2\Build\TILER2\TILER2.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Addressables">
+      <HintPath>lib\Unity.Addressables.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ResourceManager">
+      <HintPath>lib\Unity.ResourceManager.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>..\lib\Unity.TextMeshPro.dll</HintPath>
