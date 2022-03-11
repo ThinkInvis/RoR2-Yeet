@@ -8,6 +8,8 @@ Holding the mouse button down for longer will throw the item farther.
 
 Has config options to prevent dropping: lunar items (on by default), void items (on by default), all items, all equipment.
 
+Has config options for cooldown on dropping (10s by default) and on picking up an item you just dropped (5s by default).
+
 Has a config option to drop Command droplets instead of items while the Artifact of Command is active.
 
 ## Issues/TODO
@@ -18,6 +20,12 @@ Has a config option to drop Command droplets instead of items while the Artifact
 - See the GitHub repo for more!
 
 ## Changelog
+
+**2.0.0**
+
+- Implemented a cooldown on item dropping. Defaults to 10s.
+- Implemented a cooldown on picking up an item you just dropped. Defaults to 5s.
+- Significant changes to the inner workings of the mod to support these features.
 
 **1.2.3**
 
@@ -39,7 +47,3 @@ Has a config option to drop Command droplets instead of items while the Artifact
 
 - Added support for dropping equipment.
 - Added configs for disabling equipment dropping and/or item dropping.
-
-**1.1.2**
-
-- Fixed apparent compatibility issue with other mods (caused by improper console command setup).

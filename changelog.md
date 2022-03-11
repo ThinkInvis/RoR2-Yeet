@@ -1,5 +1,11 @@
 ﻿﻿# Yeet Changelog
 
+**2.0.0**
+
+- Implemented a cooldown on item dropping. Defaults to 10s.
+- Implemented a cooldown on picking up an item you just dropped. Defaults to 5s.
+- Significant changes to the inner workings of the mod to support these features.
+
 **1.2.3**
 
 - Fixed dropped items disappearing on spawn.
