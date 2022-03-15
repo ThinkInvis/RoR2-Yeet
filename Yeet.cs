@@ -31,6 +31,7 @@ namespace ThinkInvisible.Yeet {
         static bool preventVoid = true;
         static bool preventEquipment = false;
         static bool preventItems = false;
+        static bool preventRecycling = false;
         static bool commandExtraCheesyMode = false;
 
         internal static ManualLogSource _logger;
@@ -66,6 +67,8 @@ namespace ThinkInvisible.Yeet {
                 "If greater than 0, time (sec) of cooldown after dropping an item before the dropper can pick it back up.",
                 new AcceptableValueRange<float>(0f, float.MaxValue)));
 
+            var cfgPreventRecycling = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventRecycling"), true, new ConfigDescription(
+                "If true, dropped items will not work with the Recycler equipment."));
             var cfgCommandExtraCheesyMode = cfgFile.Bind(new ConfigDefinition("YeetServer", "CommandExtraCheesyMode"), false, new ConfigDescription(
                 "If true, dropped items will drop as Command pickers while Artifact of Command is enabled."));
 
@@ -78,6 +81,7 @@ namespace ThinkInvisible.Yeet {
             preventVoid = cfgPreventVoid.Value;
             preventEquipment = cfgPreventEquipment.Value;
             preventItems = cfgPreventItems.Value;
+            preventRecycling = cfgPreventRecycling.Value;
             commandExtraCheesyMode = cfgCommandExtraCheesyMode.Value;
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
@@ -88,6 +92,8 @@ namespace ThinkInvisible.Yeet {
             On.RoR2.GenericPickupController.OnTriggerStay += GenericPickupController_OnTriggerStay;
 
             CommandHelper.AddToConsoleWhenReady();
+
+            //TODO: add TILER2 dep, netpreventmismatch on configs that need it
 
             var addrLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/GenericPickup.prefab");
             addrLoad.Completed += (obj) => {
@@ -179,8 +185,11 @@ namespace ThinkInvisible.Yeet {
                     if(success) {
                         var newPickup = Instantiate(yeetPickupPrefab, self.createPickupInfo.position, self.createPickupInfo.rotation);
                         var pickupController = newPickup.GetComponent<GenericPickupController>();
-                        if(pickupController)
+                        if(pickupController) {
                             pickupController.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
+                            if(preventRecycling)
+                                pickupController.NetworkRecycled = true;
+                        }
                         var pickupIndexNetworker = newPickup.GetComponent<PickupIndexNetworker>();
                         if(pickupIndexNetworker)
                             pickupIndexNetworker.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
