@@ -1,5 +1,9 @@
 ﻿﻿# Yeet Changelog
 
+**2.0.1**
+
+- Added a config for disabling using Recycler on dropped items.
+
 **2.0.0**
 
 - Implemented a cooldown on item dropping. Defaults to 10s.

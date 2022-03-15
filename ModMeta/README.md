@@ -10,6 +10,8 @@ Has config options to prevent dropping: lunar items (on by default), void items 
 
 Has config options for cooldown on dropping (10s by default) and on picking up an item you just dropped (5s by default).
 
+Has a config option to prevent the Recycler from working on dropped items.
+
 Has a config option to drop Command droplets instead of items while the Artifact of Command is active.
 
 ## Issues/TODO
@@ -20,6 +22,10 @@ Has a config option to drop Command droplets instead of items while the Artifact
 - See the GitHub repo for more!
 
 ## Changelog
+
+**2.0.1**
+
+- Added a config for disabling using Recycler on dropped items.
 
 **2.0.0**
 
@@ -42,8 +48,3 @@ Has a config option to drop Command droplets instead of items while the Artifact
 
 - Prevented tierless items from being dropped.
 - Artifact of Command no longer creates Command droplets for items dropped from a player's inventory.
-
-**1.2.0**
-
-- Added support for dropping equipment.
-- Added configs for disabling equipment dropping and/or item dropping.
