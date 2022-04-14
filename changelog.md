@@ -1,5 +1,9 @@
 ﻿﻿# Yeet Changelog
 
+**2.1.0**
+
+- Added a server convar (`yeet_on`) that enables/disables most mod functionality.
+
 **2.0.1**
 
 - Added a config for disabling using Recycler on dropped items.

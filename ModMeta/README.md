@@ -23,6 +23,10 @@ Has a config option to drop Command droplets instead of items while the Artifact
 
 ## Changelog
 
+**2.1.0**
+
+- Added a server convar (`yeet_on`) that enables/disables most mod functionality.
+
 **2.0.1**
 
 - Added a config for disabling using Recycler on dropped items.
@@ -43,8 +47,3 @@ Has a config option to drop Command droplets instead of items while the Artifact
 
 - Updated dependencies for RoR2 Expansion 1 (SotV).
 - Added a config for dropping items as Command droplets while Artifact of Command is enabled (restores pre-1.2.1 behavior).
-
-**1.2.1**
-
-- Prevented tierless items from being dropped.
-- Artifact of Command no longer creates Command droplets for items dropped from a player's inventory.
