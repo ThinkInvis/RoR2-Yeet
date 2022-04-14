@@ -36,7 +36,9 @@ namespace ThinkInvisible.Yeet {
 
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
-        
+
+        private static readonly RoR2.ConVar.BoolConVar allowYeet = new RoR2.ConVar.BoolConVar("yeet_on", ConVarFlags.SenderMustBeServer, "true", "If false, all mod functionality will be temporarily disabled.");
+
         public void Awake() {
             _logger = this.Logger;
             ConfigFile cfgFile = new ConfigFile(Paths.ConfigPath + "\\" + ModGuid + ".cfg", true);
@@ -226,9 +228,15 @@ namespace ThinkInvisible.Yeet {
             btn.isEquipment = true;
         }
 
+
         [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void ConCmdYeet(ConCommandArgs args) {
+            if(!allowYeet.value) {
+                if(args.sender)
+                    new CmdRemoteChat("Yeet mod has been temporarily disabled by the server host.").Send(args.sender.connectionToClient);
+                return;
+            }
             if(!args.senderBody) {
                 _logger.LogError("ConCmdYeet: called by nonexistent player!");
                 return;
