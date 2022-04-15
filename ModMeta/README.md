@@ -14,6 +14,8 @@ Has a config option to prevent the Recycler from working on dropped items.
 
 Has a config option to drop Command droplets instead of items while the Artifact of Command is active.
 
+Has a serverside convar that disables dropping items at all for all clients.
+
 ## Issues/TODO
 
 - Could do with some sort of UI indicator that items can be clicked.
@@ -22,6 +24,10 @@ Has a config option to drop Command droplets instead of items while the Artifact
 - See the GitHub repo for more!
 
 ## Changelog
+
+**2.1.1**
+
+- Fixed `yeet_on` convar defaulting to 0 (intended default value is 1).
 
 **2.1.0**
 
@@ -42,8 +48,3 @@ Has a config option to drop Command droplets instead of items while the Artifact
 - Fixed dropped items disappearing on spawn.
 - Fixed dropping equipment also dropping items with the same numeric ID.
 - Added a config for disabling void item dropping.
-
-**1.2.2**
-
-- Updated dependencies for RoR2 Expansion 1 (SotV).
-- Added a config for dropping items as Command droplets while Artifact of Command is enabled (restores pre-1.2.1 behavior).

@@ -1,5 +1,9 @@
 ﻿﻿# Yeet Changelog
 
+**2.1.1**
+
+- Fixed `yeet_on` convar defaulting to 0 (intended default value is 1).
+
 **2.1.0**
 
 - Added a server convar (`yeet_on`) that enables/disables most mod functionality.
