@@ -37,7 +37,7 @@ namespace ThinkInvisible.Yeet {
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
 
-        private static readonly RoR2.ConVar.BoolConVar allowYeet = new RoR2.ConVar.BoolConVar("yeet_on", ConVarFlags.SenderMustBeServer, "true", "If false, all mod functionality will be temporarily disabled.");
+        private static readonly RoR2.ConVar.BoolConVar allowYeet = new RoR2.ConVar.BoolConVar("yeet_on", ConVarFlags.SenderMustBeServer, "1", "Boolean (0/1). If 0, all mod functionality will be temporarily disabled.");
 
         public void Awake() {
             _logger = this.Logger;
