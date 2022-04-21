@@ -10,30 +10,71 @@ using UnityEngine.Networking;
 using R2API;
 using UnityEngine.AddressableAssets;
 using R2API.Networking.Interfaces;
+using TILER2;
 using Path = System.IO.Path;
 
 namespace ThinkInvisible.Yeet {
-    
-    [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(ModGuid, ModName, ModVer)]
-    [BepInDependency("com.ThinkInvisible.TILER2", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    [BepInDependency(TILER2Plugin.ModGuid, TILER2Plugin.ModVer)]
     [R2APISubmoduleDependency(nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class YeetPlugin:BaseUnityPlugin {
         public const string ModVer = "2.1.1";
         public const string ModName = "Yeet";
         public const string ModGuid = "com.ThinkInvisible.Yeet";
 
-        static float lowThrowForce = 20f;
-        static float highThrowForce = 100f;
-        static float highThrowTime = 2f;
-        static float yoinkCooldown = 5f;
-        static float yeetCooldown = 10f;
-        static bool preventLunar = true;
-        static bool preventVoid = true;
-        static bool preventEquipment = false;
-        static bool preventItems = false;
-        static bool preventRecycling = false;
-        static bool commandExtraCheesyMode = false;
+        public class ServerConfig : AutoConfigContainer {
+            [AutoConfig("If true, Lunar items cannot be dropped (to preserve the consequences of picking one up).")]
+            [AutoConfigRoOCheckbox()]
+            public bool preventLunar { get; private set; } = true;
+
+            [AutoConfig("If true, Void items cannot be dropped (to preserve the consequences of picking one up).")]
+            [AutoConfigRoOCheckbox()]
+            public bool preventVoid { get; private set; } = true;
+
+            [AutoConfig("If true, Equipment cannot be dropped.")]
+            [AutoConfigRoOCheckbox()]
+            public bool preventEquipment { get; private set; } = false;
+
+            [AutoConfig("If true, all items (except Equipment) cannot be dropped.")]
+            [AutoConfigRoOCheckbox()]
+            public bool preventItems { get; private set; } = false;
+
+            [AutoConfig("If true, dropped items will not work with the Recycler equipment.")]
+            [AutoConfigRoOCheckbox()]
+            public bool preventRecycling { get; private set; } = false;
+
+            [AutoConfig("If true, dropped items will drop as Command pickers while Artifact of Command is enabled.")]
+            [AutoConfigRoOCheckbox()]
+            public bool commandExtraCheesyMode { get; private set; } = false;
+
+            [AutoConfig("Minimum speed, in player view direction, to add to droplets for dropped items.",
+                AutoConfigFlags.None, 0f, float.MaxValue)]
+            [AutoConfigRoOSlider("{0:N1} m/s", 0f, 500f)]
+            public float lowThrowForce { get; private set; } = 30f;
+
+            [AutoConfig("Maximum speed, in player view direction, to add to droplets for dropped items.",
+                AutoConfigFlags.None, 0f, float.MaxValue)]
+            [AutoConfigRoOSlider("{0:N1} m/s", 0f, 500f)]
+            public float highThrowForce { get; private set; } = 150f;
+
+            [AutoConfig("If greater than 0, time (sec) of cooldown after dropping an item before the dropper can pick it back up.",
+                AutoConfigFlags.None, 0f, float.MaxValue)]
+            [AutoConfigRoOSlider("{0:N1} s", 0f, 300f)]
+            public float yoinkCooldown { get; private set; } = 5f;
+
+            [AutoConfig("If greater than 0, time (sec) of cooldown after dropping one item before being able to drop another.",
+                AutoConfigFlags.None, 0f, float.MaxValue)]
+            [AutoConfigRoOSlider("{0:N1} s", 0f, 300f)]
+            public float yeetCooldown { get; private set; } = 10f;
+
+            [AutoConfig("Click hold time (sec) required to reach HighThrowForce.",
+                AutoConfigFlags.PreventNetMismatch, 0f, float.MaxValue)]
+            [AutoConfigRoOSlider("{0:N1} s", 0f, 10f)]
+            public float highThrowTime { get; private set; } = 2f;
+        }
+
+        public static readonly ServerConfig serverConfig = new ServerConfig();
 
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
@@ -42,50 +83,9 @@ namespace ThinkInvisible.Yeet {
 
         public void Awake() {
             _logger = this.Logger;
-
-            var cfgLowThrowForce = cfgFile.Bind(new ConfigDefinition("YeetServer", "LowThrowForce"), 30f, new ConfigDescription(
-                "Minimum speed, in player view direction, to add to droplets for dropped items.",
-                new AcceptableValueRange<float>(0f,float.MaxValue)));
-            var cfgHighThrowForce = cfgFile.Bind(new ConfigDefinition("YeetServer", "HighThrowForce"), 150f, new ConfigDescription(
-                "Maximum speed, in player view direction, to add to droplets for dropped items.",
-                new AcceptableValueRange<float>(0f,float.MaxValue)));
-            var cfgHighThrowTime = cfgFile.Bind(new ConfigDefinition("YeetClient", "HoldTime"), 2f, new ConfigDescription(
-                "Click hold time (sec) required to reach HighThrowForce.",
-                new AcceptableValueRange<float>(0f,float.MaxValue)));
-
-            var cfgPreventLunar = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventLunar"), true, new ConfigDescription(
-                "If true, lunar items cannot be dropped (to preserve the consequences of picking one up)."));
-            var cfgPreventVoid = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventVoid"), true, new ConfigDescription(
-                "If true, void items cannot be dropped (to preserve the consequences of picking one up)."));
-            var cfgPreventEquipment = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventEquipment"), false, new ConfigDescription(
-                "If true, equipment items cannot be dropped."));
-            var cfgPreventItems = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventItems"), false, new ConfigDescription(
-                "If true, all non-equipment items cannot be dropped."));
-
-            var cfgYeetCooldown = cfgFile.Bind(new ConfigDefinition("YeetServer", "YeetCooldown"), 10f, new ConfigDescription(
-                "If greater than 0, time (sec) of cooldown after dropping one item before being able to drop another.",
-                new AcceptableValueRange<float>(0f, float.MaxValue)));
-            var cfgYoinkCooldown = cfgFile.Bind(new ConfigDefinition("YeetServer", "YoinkCooldown"), 5f, new ConfigDescription(
-                "If greater than 0, time (sec) of cooldown after dropping an item before the dropper can pick it back up.",
-                new AcceptableValueRange<float>(0f, float.MaxValue)));
-
-            var cfgPreventRecycling = cfgFile.Bind(new ConfigDefinition("YeetServer", "PreventRecycling"), true, new ConfigDescription(
-                "If true, dropped items will not work with the Recycler equipment."));
-            var cfgCommandExtraCheesyMode = cfgFile.Bind(new ConfigDefinition("YeetServer", "CommandExtraCheesyMode"), false, new ConfigDescription(
-                "If true, dropped items will drop as Command pickers while Artifact of Command is enabled."));
-
-            lowThrowForce = cfgLowThrowForce.Value;
-            highThrowForce = cfgHighThrowForce.Value;
-            highThrowTime = cfgHighThrowTime.Value;
-            yeetCooldown = cfgYeetCooldown.Value;
-            yoinkCooldown = cfgYoinkCooldown.Value;
-            preventLunar = cfgPreventLunar.Value;
-            preventVoid = cfgPreventVoid.Value;
-            preventEquipment = cfgPreventEquipment.Value;
-            preventItems = cfgPreventItems.Value;
-            preventRecycling = cfgPreventRecycling.Value;
-            commandExtraCheesyMode = cfgCommandExtraCheesyMode.Value;
             ConfigFile cfgFile = new ConfigFile(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
+
+            serverConfig.BindAll(cfgFile, "Yeet", "Server");
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
             On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
@@ -95,8 +95,6 @@ namespace ThinkInvisible.Yeet {
             On.RoR2.GenericPickupController.OnTriggerStay += GenericPickupController_OnTriggerStay;
 
             CommandHelper.AddToConsoleWhenReady();
-
-            //TODO: add TILER2 dep, netpreventmismatch on configs that need it
 
             var addrLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/GenericPickup.prefab");
             addrLoad.Completed += (obj) => {
@@ -138,7 +136,7 @@ namespace ThinkInvisible.Yeet {
             if(NetworkServer.active) {
                 var cb = other.GetComponent<CharacterBody>();
                 var yd = self.GetComponent<YeetData>();
-                if(cb && yd && yd.yeeter == cb && yd.age < yoinkCooldown) {
+                if(cb && yd && yd.yeeter == cb && yd.age < serverConfig.yoinkCooldown) {
                     return;
                 }
             }
@@ -149,7 +147,7 @@ namespace ThinkInvisible.Yeet {
             var retv = orig(self, activator);
             var yd = self.GetComponent<YeetData>();
             var actBody = activator.GetComponent<CharacterBody>();
-            if(yd && actBody && yd.yeeter == actBody && yd.age < yoinkCooldown) {
+            if(yd && actBody && yd.yeeter == actBody && yd.age < serverConfig.yoinkCooldown) {
                 return Interactability.Disabled;
             }
             return retv;
@@ -163,7 +161,7 @@ namespace ThinkInvisible.Yeet {
             bool wasCmd = false;
             var yd = self.GetComponent<YeetData>();
             if(yd) {
-                if(!commandExtraCheesyMode)
+                if(!serverConfig.commandExtraCheesyMode)
                     wasCmd = RunArtifactManager.enabledArtifactsEnumerable.Contains(RoR2Content.Artifacts.Command);
                 if(wasCmd) RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, false);
 
@@ -190,7 +188,7 @@ namespace ThinkInvisible.Yeet {
                         var pickupController = newPickup.GetComponent<GenericPickupController>();
                         if(pickupController) {
                             pickupController.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
-                            if(preventRecycling)
+                            if(serverConfig.preventRecycling)
                                 pickupController.NetworkRecycled = true;
                         }
                         var pickupIndexNetworker = newPickup.GetComponent<PickupIndexNetworker>();
@@ -250,18 +248,18 @@ namespace ThinkInvisible.Yeet {
             var yd = args.senderBody.GetComponent<YeetData>();
             if(!yd) {
                 yd = args.senderBody.gameObject.AddComponent<YeetData>();
-                yd.age = yeetCooldown;
+                yd.age = serverConfig.yeetCooldown;
             }
 
-            if(yd.age < yeetCooldown) {
-                var cdRemaining = yeetCooldown - yd.age;
+            if(yd.age < serverConfig.yeetCooldown) {
+                var cdRemaining = serverConfig.yeetCooldown - yd.age;
                 new CmdRemoteChat($"You must wait {cdRemaining:0} second{((cdRemaining < 2) ? "" : "s")} before yeeting another item.").Send(args.sender.connectionToClient);
                 return;
             }
 
             bool isEquipment = args.TryGetArgBool(1) ?? false;
 
-            if(isEquipment ? preventEquipment : preventItems) return;
+            if(isEquipment ? serverConfig.preventEquipment : serverConfig.preventItems) return;
 
             int rawInd;
             string itemSearch = args.TryGetArgString(0);
@@ -313,7 +311,7 @@ namespace ThinkInvisible.Yeet {
                 }
             }
 
-            float throwForce = Mathf.Lerp(lowThrowForce, highThrowForce, Mathf.Clamp01(args.TryGetArgFloat(2) ?? 0f));
+            float throwForce = Mathf.Lerp(serverConfig.lowThrowForce, serverConfig.highThrowForce, Mathf.Clamp01(args.TryGetArgFloat(2) ?? 0f));
 
             PickupIndex pickup;
             if(isEquipment) {
@@ -338,8 +336,8 @@ namespace ThinkInvisible.Yeet {
                 }
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
                 if(idef.hidden || !idef.canRemove || idef.tier == ItemTier.NoTier
-                    || (idef.tier == ItemTier.Lunar && preventLunar)
-                    || (preventVoid && (idef.tier == ItemTier.VoidTier1 || idef.tier == ItemTier.VoidTier2 || idef.tier == ItemTier.VoidTier3)))
+                    || (idef.tier == ItemTier.Lunar && serverConfig.preventLunar)
+                    || (serverConfig.preventVoid && (idef.tier == ItemTier.VoidTier1 || idef.tier == ItemTier.VoidTier2 || idef.tier == ItemTier.VoidTier3)))
                     return;
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
                 pickup = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
