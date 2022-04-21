@@ -1,5 +1,11 @@
 ﻿﻿# Yeet Changelog
 
+**2.2.0**
+
+- Moved configs from manual implementation to TILER2.AutoConfig. Added Risk Of Options support.
+- Changed TILER2 dependency type to a hard dependency (v7.0.1).
+- Recompiled for latest game version.
+
 **2.1.1**
 
 - Fixed `yeet_on` convar defaulting to 0 (intended default value is 1).

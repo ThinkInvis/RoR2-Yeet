@@ -25,6 +25,12 @@ Has a serverside convar that disables dropping items at all for all clients.
 
 ## Changelog
 
+**2.2.0**
+
+- Moved configs from manual implementation to TILER2.AutoConfig. Added Risk Of Options support.
+- Changed TILER2 dependency type to a hard dependency (v7.0.1).
+- Recompiled for latest game version.
+
 **2.1.1**
 
 - Fixed `yeet_on` convar defaulting to 0 (intended default value is 1).
@@ -42,9 +48,3 @@ Has a serverside convar that disables dropping items at all for all clients.
 - Implemented a cooldown on item dropping. Defaults to 10s.
 - Implemented a cooldown on picking up an item you just dropped. Defaults to 5s.
 - Significant changes to the inner workings of the mod to support these features.
-
-**1.2.3**
-
-- Fixed dropped items disappearing on spawn.
-- Fixed dropping equipment also dropping items with the same numeric ID.
-- Added a config for disabling void item dropping.
