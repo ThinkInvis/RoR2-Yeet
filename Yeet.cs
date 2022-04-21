@@ -10,6 +10,7 @@ using UnityEngine.Networking;
 using R2API;
 using UnityEngine.AddressableAssets;
 using R2API.Networking.Interfaces;
+using Path = System.IO.Path;
 
 namespace ThinkInvisible.Yeet {
     
@@ -41,7 +42,6 @@ namespace ThinkInvisible.Yeet {
 
         public void Awake() {
             _logger = this.Logger;
-            ConfigFile cfgFile = new ConfigFile(Paths.ConfigPath + "\\" + ModGuid + ".cfg", true);
 
             var cfgLowThrowForce = cfgFile.Bind(new ConfigDefinition("YeetServer", "LowThrowForce"), 30f, new ConfigDescription(
                 "Minimum speed, in player view direction, to add to droplets for dropped items.",
@@ -85,6 +85,7 @@ namespace ThinkInvisible.Yeet {
             preventItems = cfgPreventItems.Value;
             preventRecycling = cfgPreventRecycling.Value;
             commandExtraCheesyMode = cfgCommandExtraCheesyMode.Value;
+            ConfigFile cfgFile = new ConfigFile(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
             On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
