@@ -67,14 +67,17 @@ namespace ThinkInvisible.Yeet {
                 AutoConfigFlags.None, 0f, float.MaxValue)]
             [AutoConfigRoOSlider("{0:N1} s", 0f, 300f)]
             public float yeetCooldown { get; private set; } = 10f;
+        }
 
+        public class ClientConfig : AutoConfigContainer {
             [AutoConfig("Click hold time (sec) required to reach HighThrowForce.",
-                AutoConfigFlags.PreventNetMismatch, 0f, float.MaxValue)]
+            AutoConfigFlags.None, 0f, float.MaxValue)]
             [AutoConfigRoOSlider("{0:N1} s", 0f, 10f)]
             public float highThrowTime { get; private set; } = 2f;
         }
 
         public static readonly ServerConfig serverConfig = new ServerConfig();
+        public static readonly ClientConfig clientConfig = new ClientConfig();
 
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
@@ -86,6 +89,7 @@ namespace ThinkInvisible.Yeet {
             ConfigFile cfgFile = new ConfigFile(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
 
             serverConfig.BindAll(cfgFile, "Yeet", "Server");
+            clientConfig.BindAll(cfgFile, "Yeet", "Client");
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
             On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
