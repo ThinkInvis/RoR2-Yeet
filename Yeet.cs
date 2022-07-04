@@ -139,30 +139,6 @@ namespace ThinkInvisible.Yeet {
                 yeetPickupPrefabPrefab.AddComponent<YeetData>();
                 yeetPickupPrefab = yeetPickupPrefabPrefab.InstantiateClone("YeetPickupPrefab", true);
             };
-
-            R2API.Networking.NetworkingAPI.RegisterCommandType<CmdRemoteChat>();
-        }
-
-        private struct CmdRemoteChat : INetCommand {
-            private string _content;
-
-            public void Serialize(NetworkWriter writer) {
-                writer.Write(_content);
-            }
-
-            public void Deserialize(NetworkReader reader) {
-                _content = reader.ReadString();
-            }
-
-            public void OnReceived() {
-                Chat.AddMessage(_content);
-            }
-
-            public CmdRemoteChat(string content) {
-                _content = content;
-            }
-        }
-
         }
 
         [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force.")]
@@ -170,7 +146,7 @@ namespace ThinkInvisible.Yeet {
         private static void ConCmdYeet(ConCommandArgs args) {
             if(!allowYeet.value) {
                 if(args.sender)
-                    new CmdRemoteChat("Yeet mod has been temporarily disabled by the server host.").Send(args.sender.connectionToClient);
+                    NetUtil.ServerSendChatMsg(args.sender, "Yeet mod has been temporarily disabled by the server host.");
                 return;
             }
             if(!args.senderBody) {
@@ -190,7 +166,7 @@ namespace ThinkInvisible.Yeet {
 
             if(yd.age < serverConfig.yeetCooldown) {
                 var cdRemaining = serverConfig.yeetCooldown - yd.age;
-                new CmdRemoteChat($"You must wait {cdRemaining:0} second{((cdRemaining < 2) ? "" : "s")} before yeeting another item.").Send(args.sender.connectionToClient);
+                NetUtil.ServerSendChatMsg(args.sender, $"You must wait {cdRemaining:0} second{((cdRemaining < 2) ? "" : "s")} before yeeting another item.");
                 return;
             }
 
