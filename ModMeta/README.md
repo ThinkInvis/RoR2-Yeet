@@ -6,24 +6,53 @@ Clicking an item or equipment in your inventory will remove one stack of it and 
 
 Holding the mouse button down for longer will throw the item farther.
 
-Has config options to prevent dropping: lunar items (on by default), void items (on by default), all items, all equipment.
+Config options include (default values):
 
-Has config options for cooldown on dropping (10s by default) and on picking up an item you just dropped (5s by default).
-
-Has a config option to prevent the Recycler from working on dropped items.
-
-Has a config option to drop Command droplets instead of items while the Artifact of Command is active.
-
-Has a serverside convar that disables dropping items at all for all clients.
+- Server:
+	- Blacklist, prevent dropping:
+		- Items and equipment by name token (none)
+		- Items by tier (Lunar and all Void)
+		- Tierless/hidden/non-removable items (all on)
+		- Non-Lunar or Lunar equipment (both off)
+		- All items (off)
+		- All equipment (off).
+	- Cooldown on dropping (10s) and on picking up items you just dropped (5s)
+	- Prevent Recycler on dropped items (on)
+	- Drop Command droplets if relevant artifact is active (off)
+	- Limit maximum allowable items dropped per click if dropping multiple (1/off)
+	- Entirely disable mod temporarily (on/not disabled)
+	- Announce dropped items in chat (on)
+	- Minimum and maximum throw force (30, 150)
+- Client:
+	- Make left and/or right click drop multiple items (1/off, 1/off)
+	- Click hold time required to reach maximum throw force (2 sec)
 
 ## Issues/TODO
 
+- Doesn't support controllers.
 - Could do with some sort of UI indicator that items can be clicked.
 - "Drop last valid pickup" command/keybind.
 - Primary skill is fired while clicking in inventory to drop items (the alternative is 'sticky' UI focus when adding buttons; picked lesser of two evils for now).
 - See the GitHub repo for more!
 
 ## Changelog
+
+The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-Yeet/blob/master/changelog.md
+
+**3.0.0**
+
+- Made serverside blacklist configs more granular.
+	- Added BlacklistTier and BlacklistItem comma-delimited strings. BlacklistItem affects equipments, too.
+	- Added PreventLunarEquipment and PreventNonLunarEquipment booleans for equipments.
+	- Added PreventHidden, PreventCantRemove, and PreventTierless booleans for items.
+	- PreventLunar and PreventVoid have been removed (merged into tier blacklist).
+- Added an option to announce dropped items to all players in chat, enabled by default.
+- Added an option to drop multiple items per click, disabled by default.
+- Added an option to drop differing item counts between left and right click, disabled by default.
+- ConCmdYeet now uses chat to tell the calling player why it failed in some cases.
+- Removed code that was still unnecessarily treating TILER2 as a soft dependency.
+- Switched to TILER2 NetUtil for networked chat messages, was previously using an internal implementation.
+- Updated dependencies, and updated lang version to C#9.
 
 **2.2.0**
 
@@ -42,9 +71,3 @@ Has a serverside convar that disables dropping items at all for all clients.
 **2.0.1**
 
 - Added a config for disabling using Recycler on dropped items.
-
-**2.0.0**
-
-- Implemented a cooldown on item dropping. Defaults to 10s.
-- Implemented a cooldown on picking up an item you just dropped. Defaults to 5s.
-- Significant changes to the inner workings of the mod to support these features.

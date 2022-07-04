@@ -1,5 +1,20 @@
 ﻿﻿# Yeet Changelog
 
+**3.0.0**
+
+- Made serverside blacklist configs more granular.
+	- Added BlacklistTier and BlacklistItem comma-delimited strings. BlacklistItem affects equipments, too.
+	- Added PreventLunarEquipment and PreventNonLunarEquipment booleans for equipments.
+	- Added PreventHidden, PreventCantRemove, and PreventTierless booleans for items.
+	- PreventLunar and PreventVoid have been removed (merged into tier blacklist).
+- Added an option to announce dropped items to all players in chat, enabled by default.
+- Added an option to drop multiple items per click, disabled by default.
+- Added an option to drop differing item counts between left and right click, disabled by default.
+- ConCmdYeet now uses chat to tell the calling player why it failed in some cases.
+- Removed code that was still unnecessarily treating TILER2 as a soft dependency.
+- Switched to TILER2 NetUtil for networked chat messages, was previously using an internal implementation.
+- Updated dependencies, and updated lang version to C#9.
+
 **2.2.0**
 
 - Moved configs from manual implementation to TILER2.AutoConfig. Added Risk Of Options support.
