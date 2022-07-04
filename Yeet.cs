@@ -77,7 +77,7 @@ namespace ThinkInvisible.Yeet {
 
             [AutoConfig("Maximum of one type of item to allow dropping at once.",
                 AutoConfigFlags.None, 1, int.MaxValue)]
-            [AutoConfigRoOSlider("{0:N0}", 1, 100)]
+            [AutoConfigRoOIntSlider("{0:N0}", 1, 100)]
             public int maxThrowCount { get; private set; } = 1;
 
             [AutoConfig("If greater than 0, time (sec) of cooldown after dropping an item before the dropper can pick it back up.",
@@ -99,12 +99,12 @@ namespace ThinkInvisible.Yeet {
 
             [AutoConfig("Items to attempt to drop with a left click. May be limited by server. Negative values are converted to a percentage.",
             AutoConfigFlags.None, -100, int.MaxValue)]
-            [AutoConfigRoOSlider("{0:N0}", -100, 100)]
+            [AutoConfigRoOIntSlider("{0:N0}", -100, 100)]
             public int primaryQuantity { get; private set; } = 1;
 
             [AutoConfig("Items to attempt to drop with a right click. May be limited by server. Negative values are converted to a percentage.",
             AutoConfigFlags.None, -100, int.MaxValue)]
-            [AutoConfigRoOSlider("{0:N0}", -100, 100)]
+            [AutoConfigRoOIntSlider("{0:N0}", -100, 100)]
             public int secondaryQuantity { get; private set; } = 1;
         }
 
