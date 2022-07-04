@@ -49,9 +49,12 @@ namespace ThinkInvisible.Yeet {
             [AutoConfig("If true, items flagged as non-removable cannot be dropped (highly recommended to leave enabled!).")]
             public bool preventCantRemove { get; private set; } = true;
 
-            [AutoConfig("Enter ItemTier names to prevent them from being dropped. Comma-delimited, whitespace is trimmed. Only works on vanilla tiers for now.")]
+            [AutoConfig("If true, tierless items cannot be dropped (highly recommended to leave enabled!).")]
+            public bool preventTierless { get; private set; } = true;
+
+            [AutoConfig("Enter ItemTierDef names to prevent them from being dropped. Comma-delimited, whitespace is trimmed. Only works on vanilla tiers for now.")]
             [AutoConfigRoOString()]
-            public string blacklistTier { get; private set; } = "NoTier, Lunar, VoidTier1, VoidTier2, VoidTier3";
+            public string blacklistTier { get; private set; } = "LunarDef, VoidTier1Def, VoidTier2Def, VoidTier3Def";
 
             [AutoConfig("Enter item/equipment name tokens (found in game language files) to prevent them from being dropped. Comma-delimited, whitespace is trimmed.")]
             [AutoConfigRoOString()]
@@ -276,7 +279,9 @@ namespace ThinkInvisible.Yeet {
                 Debug.Log(itier.name);
                 if((serverConfig.preventHidden && idef.hidden)
                     || (serverConfig.preventCantRemove && !idef.canRemove)
-                    || _blacklistTier.Contains(itier.name)
+                    || (itier == null
+                        ? serverConfig.preventTierless
+                        : _blacklistTier.Contains(itier.name))
                     || _blacklistItem.Contains(idef.nameToken))
                     return;
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
