@@ -259,11 +259,10 @@ namespace ThinkInvisible.Yeet {
 
                 pickup = PickupCatalog.FindPickupIndex((EquipmentIndex)rawInd);
             } else {
-                int count;
-                if(Compat_TILER2.enabled)
-                    count = Compat_TILER2.GetRealItemCount(args.senderBody.inventory, (ItemIndex)rawInd);
-                else
-                    count = args.senderBody.inventory.GetItemCount((ItemIndex)rawInd);
+                var fakeInv = args.senderBody.GetComponent<FakeInventory>();
+                var count = fakeInv
+                    ? fakeInv.GetRealItemCount((ItemIndex)rawInd)
+                    : args.senderBody.inventory.GetItemCount((ItemIndex) rawInd);
                 if(count < 1) {
                     _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
                     return;
