@@ -300,7 +300,7 @@ namespace ThinkInvisible.Yeet {
                 throwCount = Mathf.Clamp(attemptThrowCount, 1, serverConfig.maxThrowCount);
                 if((serverBlacklist.preventHidden && idef.hidden)
                     || (serverBlacklist.preventCantRemove && !idef.canRemove)
-                    || (itier == null
+                    || (!itier
                         ? serverBlacklist.preventTierless
                         : _blacklistTier.Contains(itier.name))) {
                     NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: tier blacklisted by server.");
