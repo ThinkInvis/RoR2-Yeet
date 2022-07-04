@@ -26,7 +26,7 @@ namespace ThinkInvisible.Yeet {
         public const string ModName = "Yeet";
         public const string ModGuid = "com.ThinkInvisible.Yeet";
 
-        public class ServerConfig : AutoConfigContainer {
+        public class ServerBlacklist : AutoConfigContainer {
             [AutoConfig("If true, all equipment cannot be dropped.")]
             [AutoConfigRoOCheckbox()]
             public bool preventEquipment { get; private set; } = false;
@@ -59,7 +59,9 @@ namespace ThinkInvisible.Yeet {
             [AutoConfig("Enter item/equipment name tokens (found in game language files) to prevent them from being dropped. Comma-delimited, whitespace is trimmed.")]
             [AutoConfigRoOString()]
             public string blacklistItem { get; private set; } = "";
+        }
 
+        public class ServerConfig : AutoConfigContainer {
             [AutoConfig("If true, dropped items will not work with the Recycler equipment.")]
             [AutoConfigRoOCheckbox()]
             public bool preventRecycling { get; private set; } = false;
@@ -117,6 +119,7 @@ namespace ThinkInvisible.Yeet {
 
         public static readonly ServerConfig serverConfig = new ServerConfig();
         public static readonly ClientConfig clientConfig = new ClientConfig();
+        public static readonly ServerBlacklist serverBlacklist = new ServerBlacklist();
 
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
@@ -129,12 +132,12 @@ namespace ThinkInvisible.Yeet {
             _logger = this.Logger;
             ConfigFile cfgFile = new ConfigFile(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
 
-            serverConfig.ConfigEntryChanged += (sender, args) => {
-                if(args.target.boundProperty.Name == nameof(serverConfig.blacklistTier)) {
+            serverBlacklist.ConfigEntryChanged += (sender, args) => {
+                if(args.target.boundProperty.Name == nameof(serverBlacklist.blacklistTier)) {
                     _blacklistTier.Clear();
                     _blacklistTier.UnionWith(((string)args.newValue).Split(',').Select(x => x.Trim()));
                 }
-                if(args.target.boundProperty.Name == nameof(serverConfig.blacklistItem)) {
+                if(args.target.boundProperty.Name == nameof(serverBlacklist.blacklistItem)) {
                     _blacklistItem.Clear();
                     _blacklistItem.UnionWith(((string)args.newValue).Split(',').Select(x => x.Trim()));
                 }
@@ -142,6 +145,7 @@ namespace ThinkInvisible.Yeet {
 
             serverConfig.BindAll(cfgFile, "Yeet", "Server");
             clientConfig.BindAll(cfgFile, "Yeet", "Client");
+            serverBlacklist.BindAll(cfgFile, "Yeet", "ServerBlacklist");
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
             On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
@@ -195,7 +199,7 @@ namespace ThinkInvisible.Yeet {
 
             bool isEquipment = args.TryGetArgBool(1) ?? false;
 
-            if(isEquipment ? serverConfig.preventEquipment : serverConfig.preventItems) return;
+            if(isEquipment ? serverBlacklist.preventEquipment : serverBlacklist.preventItems) return;
 
             int rawInd;
             string itemSearch = args.TryGetArgString(0);
@@ -263,7 +267,7 @@ namespace ThinkInvisible.Yeet {
                     return;
                 }
 
-                if(edef.isLunar ? serverConfig.preventLunarEquipment : serverConfig.preventNonLunarEquipment) {
+                if(edef.isLunar ? serverBlacklist.preventLunarEquipment : serverBlacklist.preventNonLunarEquipment) {
                     NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: tier blacklisted by server.");
                     return;
                 }
@@ -294,10 +298,10 @@ namespace ThinkInvisible.Yeet {
                 if(attemptThrowCount < 0)
                     attemptThrowCount = Mathf.CeilToInt(count / ((-attemptThrowCount) * 100f));
                 throwCount = Mathf.Clamp(attemptThrowCount, 1, serverConfig.maxThrowCount);
-                if((serverConfig.preventHidden && idef.hidden)
-                    || (serverConfig.preventCantRemove && !idef.canRemove)
+                if((serverBlacklist.preventHidden && idef.hidden)
+                    || (serverBlacklist.preventCantRemove && !idef.canRemove)
                     || (itier == null
-                        ? serverConfig.preventTierless
+                        ? serverBlacklist.preventTierless
                         : _blacklistTier.Contains(itier.name))) {
                     NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: tier blacklisted by server.");
                     return;
