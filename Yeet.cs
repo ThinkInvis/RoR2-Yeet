@@ -68,6 +68,10 @@ namespace ThinkInvisible.Yeet {
             [AutoConfigRoOCheckbox()]
             public bool commandExtraCheesyMode { get; private set; } = false;
 
+            [AutoConfig("If true, dropping items will be announced in global chat.")]
+            [AutoConfigRoOCheckbox()]
+            public bool announce { get; private set; } = true;
+
             [AutoConfig("Minimum speed, in player view direction, to add to droplets for dropped items.",
                 AutoConfigFlags.None, 0f, float.MaxValue)]
             [AutoConfigRoOSlider("{0:N1} m/s", 0f, 500f)]
@@ -247,24 +251,25 @@ namespace ThinkInvisible.Yeet {
             int throwCount = 1;
 
             PickupIndex pickup;
+            string pickupText;
             if(isEquipment) {
                 var edef = EquipmentCatalog.GetEquipmentDef((EquipmentIndex)rawInd);
                 var ecolor = ColorCatalog.GetColorHexString(edef.colorIndex);
-                var failReasonBasis = $"Can't yeet <color=#{ecolor}>{Language.GetString(edef.nameToken)}</color>: ";
+                pickupText = $"<color=#{ecolor}>{Language.GetString(edef.nameToken)}</color>";
 
                 if(args.senderBody.inventory.GetEquipmentIndex() != (EquipmentIndex)rawInd) {
                     _logger.LogWarning("ConCmdYeet: someone's trying to drop an equipment they don't have");
-                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "you don't have it.");
+                    NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: you don't have it.");
                     return;
                 }
 
                 if(edef.isLunar ? serverConfig.preventLunarEquipment : serverConfig.preventNonLunarEquipment) {
-                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "tier blacklisted by server.");
+                    NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: tier blacklisted by server.");
                     return;
                 }
 
                 if(_blacklistItem.Contains(edef.nameToken)) {
-                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "equipment blacklisted by server.");
+                    NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: equipment blacklisted by server.");
                     return;
                 }
 
@@ -279,10 +284,10 @@ namespace ThinkInvisible.Yeet {
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
                 var itier = ItemTierCatalog.GetItemTierDef(idef.tier);
                 var icolor = ColorCatalog.GetColorHexString(itier.colorIndex);
-                var failReasonBasis = $"Can't yeet <color=#{icolor}>{Language.GetString(idef.nameToken)}</color>: ";
+                pickupText = $"<color=#{icolor}>{Language.GetString(idef.nameToken)}</color>";
                 if(count < 1) {
                     _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
-                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "you don't have any.");
+                    NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: you don't have any.");
                     return;
                 }
                 var attemptThrowCount = args.TryGetArgInt(3) ?? 1;
@@ -294,16 +299,19 @@ namespace ThinkInvisible.Yeet {
                     || (itier == null
                         ? serverConfig.preventTierless
                         : _blacklistTier.Contains(itier.name))) {
-                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "tier blacklisted by server.");
+                    NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: tier blacklisted by server.");
                     return;
                 }
                 if(_blacklistItem.Contains(idef.nameToken)) {
-                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "item blacklisted by server.");
+                    NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: item blacklisted by server.");
                     return;
                 }
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
                 pickup = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
             }
+
+            if(serverConfig.announce)
+                NetUtil.ServerSendGlobalChatMsg($"{Util.EscapeRichTextForTextMeshPro(args.sender.userName)} yeeted {throwCount}x {pickupText}");
 
             for(var i = 0; i < throwCount; i++) {
                 var obj = GameObject.Instantiate(PickupDropletController.pickupDropletPrefab, args.senderBody.inputBank.aimOrigin, Quaternion.identity);
