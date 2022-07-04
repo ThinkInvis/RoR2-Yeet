@@ -133,19 +133,17 @@ namespace ThinkInvisible.Yeet {
             ConfigFile cfgFile = new ConfigFile(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
 
             serverBlacklist.ConfigEntryChanged += (sender, args) => {
-                if(args.target.boundProperty.Name == nameof(serverBlacklist.blacklistTier)) {
-                    _blacklistTier.Clear();
-                    _blacklistTier.UnionWith(((string)args.newValue).Split(',').Select(x => x.Trim()));
-                }
-                if(args.target.boundProperty.Name == nameof(serverBlacklist.blacklistItem)) {
-                    _blacklistItem.Clear();
-                    _blacklistItem.UnionWith(((string)args.newValue).Split(',').Select(x => x.Trim()));
+                if(args.target.boundProperty.Name == nameof(serverBlacklist.blacklistTier)
+                    || args.target.boundProperty.Name == nameof(serverBlacklist.blacklistItem)) {
+                    UpdateBlacklists();
                 }
             };
 
             serverConfig.BindAll(cfgFile, "Yeet", "Server");
             clientConfig.BindAll(cfgFile, "Yeet", "Client");
             serverBlacklist.BindAll(cfgFile, "Yeet", "ServerBlacklist");
+
+            UpdateBlacklists();
 
             On.RoR2.UI.ItemIcon.Awake += ItemIcon_Awake;
             On.RoR2.UI.EquipmentIcon.Update += EquipmentIcon_Update;
@@ -167,6 +165,13 @@ namespace ThinkInvisible.Yeet {
                 yeetPickupPrefabPrefab.AddComponent<YeetData>();
                 yeetPickupPrefab = yeetPickupPrefabPrefab.InstantiateClone("YeetPickupPrefab", true);
             };
+        }
+
+        void UpdateBlacklists() {
+            _blacklistItem.Clear();
+            _blacklistItem.UnionWith(serverBlacklist.blacklistItem.Split(',').Select(x => x.Trim()));
+            _blacklistTier.Clear();
+            _blacklistTier.UnionWith(serverBlacklist.blacklistTier.Split(',').Select(x => x.Trim()));
         }
 
         [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force. Argument 4: item count.")]
