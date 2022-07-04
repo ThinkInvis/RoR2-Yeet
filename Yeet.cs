@@ -163,102 +163,7 @@ namespace ThinkInvisible.Yeet {
             }
         }
 
-
-        private void GenericPickupController_OnTriggerStay(On.RoR2.GenericPickupController.orig_OnTriggerStay orig, GenericPickupController self, Collider other) {
-            if(NetworkServer.active) {
-                var cb = other.GetComponent<CharacterBody>();
-                var yd = self.GetComponent<YeetData>();
-                if(cb && yd && yd.yeeter == cb && yd.age < serverConfig.yoinkCooldown) {
-                    return;
-                }
-            }
-            orig(self, other);
         }
-
-        private Interactability GenericPickupController_GetInteractability(On.RoR2.GenericPickupController.orig_GetInteractability orig, GenericPickupController self, Interactor activator) {
-            var retv = orig(self, activator);
-            var yd = self.GetComponent<YeetData>();
-            var actBody = activator.GetComponent<CharacterBody>();
-            if(yd && actBody && yd.yeeter == actBody && yd.age < serverConfig.yoinkCooldown) {
-                return Interactability.Disabled;
-            }
-            return retv;
-        }
-
-        private void PickupDropletController_OnCollisionEnter(On.RoR2.PickupDropletController.orig_OnCollisionEnter orig, PickupDropletController self, Collision collision) {
-            if(!NetworkServer.active || !self.alive) {
-                orig(self, collision);
-                return;
-            }
-            bool wasCmd = false;
-            var yd = self.GetComponent<YeetData>();
-            if(yd) {
-                if(!serverConfig.commandExtraCheesyMode)
-                    wasCmd = RunArtifactManager.enabledArtifactsEnumerable.Contains(RoR2Content.Artifacts.Command);
-                if(wasCmd) RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, false);
-
-                if(!yeetPickupPrefab) {
-                    orig(self, collision);
-                } else {
-                    //GenericPickupController.CreatePickup only allows in a struct which makes it very hard to pass in any extra information *fine I'll do it myself*
-                    self.alive = false;
-                    self.createPickupInfo.position = self.transform.position;
-
-                    bool success = true;
-                    //not raised in vanilla because command artifact is the only thing that uses it, but just in case
-                    var multicast = (System.MulticastDelegate)typeof(PickupDropletController).GetFieldCached(nameof(PickupDropletController.onDropletHitGroundServer)).GetValue(null);
-                    if(multicast != null) {
-                        foreach(var del in multicast.GetInvocationList()) {
-                            var args = new object[] { self.createPickupInfo, success };
-                            del.Method.Invoke(del.Target, args);
-                            self.createPickupInfo = (GenericPickupController.CreatePickupInfo)args[0];
-                            success = (bool)args[1];
-                        }
-                    }
-                    if(success) {
-                        var newPickup = Instantiate(yeetPickupPrefab, self.createPickupInfo.position, self.createPickupInfo.rotation);
-                        var pickupController = newPickup.GetComponent<GenericPickupController>();
-                        if(pickupController) {
-                            pickupController.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
-                            if(serverConfig.preventRecycling)
-                                pickupController.NetworkRecycled = true;
-                        }
-                        var pickupIndexNetworker = newPickup.GetComponent<PickupIndexNetworker>();
-                        if(pickupIndexNetworker)
-                            pickupIndexNetworker.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
-                        //no options, should only ever yeet one item
-                        var pickupYeetData = newPickup.GetComponent<YeetData>();
-                        pickupYeetData.age = yd.age;
-                        pickupYeetData.yeeter = yd.yeeter;
-
-                        NetworkServer.Spawn(newPickup);
-                    }
-
-                    Destroy(self.gameObject);
-                }
-
-                if(wasCmd)
-                    RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, true);
-            }
-            else orig(self, collision);
-        }
-
-        private GenericPickupController GenericPickupController_CreatePickup(On.RoR2.GenericPickupController.orig_CreatePickup orig, ref GenericPickupController.CreatePickupInfo createPickupInfo) {
-            return orig(ref createPickupInfo);
-        }
-
-        private void ItemIcon_Awake(On.RoR2.UI.ItemIcon.orig_Awake orig, RoR2.UI.ItemIcon self) {
-            orig(self);
-            self.gameObject.AddComponent<YeetButton>();
-        }
-
-        private void EquipmentIcon_Update(On.RoR2.UI.EquipmentIcon.orig_Update orig, RoR2.UI.EquipmentIcon self) {
-            orig(self);
-            if(self.gameObject.GetComponent<YeetButton>()) return;
-            var btn = self.gameObject.AddComponent<YeetButton>();
-            btn.isEquipment = true;
-        }
-
 
         [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
@@ -400,6 +305,102 @@ namespace ThinkInvisible.Yeet {
 
             yd.age = 0;
         }
+
+        #region Hooks
+        private void GenericPickupController_OnTriggerStay(On.RoR2.GenericPickupController.orig_OnTriggerStay orig, GenericPickupController self, Collider other) {
+            if(NetworkServer.active) {
+                var cb = other.GetComponent<CharacterBody>();
+                var yd = self.GetComponent<YeetData>();
+                if(cb && yd && yd.yeeter == cb && yd.age < serverConfig.yoinkCooldown) {
+                    return;
+                }
+            }
+            orig(self, other);
+        }
+
+        private Interactability GenericPickupController_GetInteractability(On.RoR2.GenericPickupController.orig_GetInteractability orig, GenericPickupController self, Interactor activator) {
+            var retv = orig(self, activator);
+            var yd = self.GetComponent<YeetData>();
+            var actBody = activator.GetComponent<CharacterBody>();
+            if(yd && actBody && yd.yeeter == actBody && yd.age < serverConfig.yoinkCooldown) {
+                return Interactability.Disabled;
+            }
+            return retv;
+        }
+
+        private void PickupDropletController_OnCollisionEnter(On.RoR2.PickupDropletController.orig_OnCollisionEnter orig, PickupDropletController self, Collision collision) {
+            if(!NetworkServer.active || !self.alive) {
+                orig(self, collision);
+                return;
+            }
+            bool wasCmd = false;
+            var yd = self.GetComponent<YeetData>();
+            if(yd) {
+                if(!serverConfig.commandExtraCheesyMode)
+                    wasCmd = RunArtifactManager.enabledArtifactsEnumerable.Contains(RoR2Content.Artifacts.Command);
+                if(wasCmd) RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, false);
+
+                if(!yeetPickupPrefab) {
+                    orig(self, collision);
+                } else {
+                    //GenericPickupController.CreatePickup only allows in a struct which makes it very hard to pass in any extra information *fine I'll do it myself*
+                    self.alive = false;
+                    self.createPickupInfo.position = self.transform.position;
+
+                    bool success = true;
+                    //not raised in vanilla because command artifact is the only thing that uses it, but just in case
+                    var multicast = (System.MulticastDelegate)typeof(PickupDropletController).GetFieldCached(nameof(PickupDropletController.onDropletHitGroundServer)).GetValue(null);
+                    if(multicast != null) {
+                        foreach(var del in multicast.GetInvocationList()) {
+                            var args = new object[] { self.createPickupInfo, success };
+                            del.Method.Invoke(del.Target, args);
+                            self.createPickupInfo = (GenericPickupController.CreatePickupInfo)args[0];
+                            success = (bool)args[1];
+                        }
+                    }
+                    if(success) {
+                        var newPickup = Instantiate(yeetPickupPrefab, self.createPickupInfo.position, self.createPickupInfo.rotation);
+                        var pickupController = newPickup.GetComponent<GenericPickupController>();
+                        if(pickupController) {
+                            pickupController.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
+                            if(serverConfig.preventRecycling)
+                                pickupController.NetworkRecycled = true;
+                        }
+                        var pickupIndexNetworker = newPickup.GetComponent<PickupIndexNetworker>();
+                        if(pickupIndexNetworker)
+                            pickupIndexNetworker.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
+                        //no options, should only ever yeet one item
+                        var pickupYeetData = newPickup.GetComponent<YeetData>();
+                        pickupYeetData.age = yd.age;
+                        pickupYeetData.yeeter = yd.yeeter;
+
+                        NetworkServer.Spawn(newPickup);
+                    }
+
+                    Destroy(self.gameObject);
+                }
+
+                if(wasCmd)
+                    RunArtifactManager.instance.SetArtifactEnabledServer(RoR2Content.Artifacts.Command, true);
+            } else orig(self, collision);
+        }
+
+        private GenericPickupController GenericPickupController_CreatePickup(On.RoR2.GenericPickupController.orig_CreatePickup orig, ref GenericPickupController.CreatePickupInfo createPickupInfo) {
+            return orig(ref createPickupInfo);
+        }
+
+        private void ItemIcon_Awake(On.RoR2.UI.ItemIcon.orig_Awake orig, RoR2.UI.ItemIcon self) {
+            orig(self);
+            self.gameObject.AddComponent<YeetButton>();
+        }
+
+        private void EquipmentIcon_Update(On.RoR2.UI.EquipmentIcon.orig_Update orig, RoR2.UI.EquipmentIcon self) {
+            orig(self);
+            if(self.gameObject.GetComponent<YeetButton>()) return;
+            var btn = self.gameObject.AddComponent<YeetButton>();
+            btn.isEquipment = true;
+        }
+        #endregion
     }
 
     public class YeetData : MonoBehaviour {
