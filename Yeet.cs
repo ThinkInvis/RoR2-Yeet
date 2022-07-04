@@ -12,6 +12,9 @@ using UnityEngine.AddressableAssets;
 using R2API.Networking.Interfaces;
 using TILER2;
 using Path = System.IO.Path;
+using System.Collections.Generic;
+using System;
+using Random = UnityEngine.Random;
 
 namespace ThinkInvisible.Yeet {
     [BepInPlugin(ModGuid, ModName, ModVer)]
@@ -24,21 +27,33 @@ namespace ThinkInvisible.Yeet {
         public const string ModGuid = "com.ThinkInvisible.Yeet";
 
         public class ServerConfig : AutoConfigContainer {
-            [AutoConfig("If true, Lunar items cannot be dropped (to preserve the consequences of picking one up).")]
-            [AutoConfigRoOCheckbox()]
-            public bool preventLunar { get; private set; } = true;
-
-            [AutoConfig("If true, Void items cannot be dropped (to preserve the consequences of picking one up).")]
-            [AutoConfigRoOCheckbox()]
-            public bool preventVoid { get; private set; } = true;
-
-            [AutoConfig("If true, Equipment cannot be dropped.")]
+            [AutoConfig("If true, all equipment cannot be dropped.")]
             [AutoConfigRoOCheckbox()]
             public bool preventEquipment { get; private set; } = false;
 
-            [AutoConfig("If true, all items (except Equipment) cannot be dropped.")]
+            [AutoConfig("If true, Lunar equipment cannot be dropped.")]
+            [AutoConfigRoOCheckbox()]
+            public bool preventLunarEquipment { get; private set; } = false;
+
+            [AutoConfig("If true, non-Lunar equipment cannot be dropped.")]
+            [AutoConfigRoOCheckbox()]
+            public bool preventNonLunarEquipment { get; private set; } = false;
+
+            [AutoConfig("If true, all items (except equipment) cannot be dropped.")]
             [AutoConfigRoOCheckbox()]
             public bool preventItems { get; private set; } = false;
+
+            [AutoConfig("If true, hidden items cannot be dropped (highly recommended to leave enabled!).")]
+            public bool preventHidden { get; private set; } = true;
+
+            [AutoConfig("If true, items flagged as non-removable cannot be dropped (highly recommended to leave enabled!).")]
+            public bool preventCantRemove { get; private set; } = true;
+
+            [AutoConfig("Enter ItemTier names to prevent them from being dropped. Comma-delimited, whitespace is trimmed. Only works on vanilla tiers for now.")]
+            public string blacklistTier { get; private set; } = "NoTier, Lunar, VoidTier1, VoidTier2, VoidTier3";
+
+            [AutoConfig("Enter item/equipment name tokens (found in game language files) to prevent them from being dropped. Comma-delimited, whitespace is trimmed.")]
+            public string blacklistItem { get; private set; } = "";
 
             [AutoConfig("If true, dropped items will not work with the Recycler equipment.")]
             [AutoConfigRoOCheckbox()]
@@ -81,12 +96,25 @@ namespace ThinkInvisible.Yeet {
 
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
+        private static HashSet<string> _blacklistTier = new HashSet<string>();
+        private static HashSet<string> _blacklistItem = new HashSet<string>();
 
         private static readonly RoR2.ConVar.BoolConVar allowYeet = new RoR2.ConVar.BoolConVar("yeet_on", ConVarFlags.SenderMustBeServer, "1", "Boolean (0/1). If 0, all mod functionality will be temporarily disabled.");
 
         public void Awake() {
             _logger = this.Logger;
             ConfigFile cfgFile = new ConfigFile(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
+
+            serverConfig.ConfigEntryChanged += (sender, args) => {
+                if(args.target.boundProperty.Name == nameof(serverConfig.blacklistTier)) {
+                    _blacklistTier.Clear();
+                    _blacklistTier.UnionWith(((string)args.newValue).Split(',').Select(x => x.Trim()));
+                }
+                if(args.target.boundProperty.Name == nameof(serverConfig.blacklistItem)) {
+                    _blacklistItem.Clear();
+                    _blacklistItem.UnionWith(((string)args.newValue).Split(',').Select(x => x.Trim()));
+                }
+            };
 
             serverConfig.BindAll(cfgFile, "Yeet", "Server");
             clientConfig.BindAll(cfgFile, "Yeet", "Client");
@@ -325,6 +353,10 @@ namespace ThinkInvisible.Yeet {
                 }
 
                 var edef = EquipmentCatalog.GetEquipmentDef((EquipmentIndex)rawInd);
+
+                if(edef.isLunar ? serverConfig.preventLunarEquipment : serverConfig.preventNonLunarEquipment)
+                    return;
+
                 args.senderBody.inventory.SetEquipmentIndex(EquipmentIndex.None);
 
                 pickup = PickupCatalog.FindPickupIndex((EquipmentIndex)rawInd);
@@ -339,9 +371,11 @@ namespace ThinkInvisible.Yeet {
                     return;
                 }
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
-                if(idef.hidden || !idef.canRemove || idef.tier == ItemTier.NoTier
-                    || (idef.tier == ItemTier.Lunar && serverConfig.preventLunar)
-                    || (serverConfig.preventVoid && (idef.tier == ItemTier.VoidTier1 || idef.tier == ItemTier.VoidTier2 || idef.tier == ItemTier.VoidTier3)))
+                Debug.Log(idef._itemTierDef.name);
+                if((serverConfig.preventHidden && idef.hidden)
+                    || (serverConfig.preventCantRemove && !idef.canRemove)
+                    || _blacklistTier.Contains(idef._itemTierDef.name)
+                    || _blacklistItem.Contains(idef.nameToken))
                     return;
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
                 pickup = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
