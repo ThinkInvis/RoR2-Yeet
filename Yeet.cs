@@ -117,20 +117,20 @@ namespace ThinkInvisible.Yeet {
             public int secondaryQuantity { get; private set; } = 1;
         }
 
-        public static readonly ServerConfig serverConfig = new ServerConfig();
-        public static readonly ClientConfig clientConfig = new ClientConfig();
-        public static readonly ServerBlacklist serverBlacklist = new ServerBlacklist();
+        public static readonly ServerConfig serverConfig = new();
+        public static readonly ClientConfig clientConfig = new();
+        public static readonly ServerBlacklist serverBlacklist = new();
 
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
-        private static readonly HashSet<string> _blacklistTier = new HashSet<string>();
-        private static readonly HashSet<string> _blacklistItem = new HashSet<string>();
+        private static readonly HashSet<string> _blacklistTier = new();
+        private static readonly HashSet<string> _blacklistItem = new();
 
-        private static readonly RoR2.ConVar.BoolConVar allowYeet = new RoR2.ConVar.BoolConVar("yeet_on", ConVarFlags.SenderMustBeServer, "1", "Boolean (0/1). If 0, all mod functionality will be temporarily disabled.");
+        private static readonly RoR2.ConVar.BoolConVar allowYeet = new("yeet_on", ConVarFlags.SenderMustBeServer, "1", "Boolean (0/1). If 0, all mod functionality will be temporarily disabled.");
 
         public void Awake() {
             _logger = this.Logger;
-            ConfigFile cfgFile = new ConfigFile(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
+            ConfigFile cfgFile = new(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
 
             serverBlacklist.ConfigEntryChanged += (sender, args) => {
                 if(args.target.boundProperty.Name == nameof(serverBlacklist.blacklistTier)
