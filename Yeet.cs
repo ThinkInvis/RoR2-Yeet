@@ -96,8 +96,8 @@ namespace ThinkInvisible.Yeet {
 
         internal static ManualLogSource _logger;
         private static GameObject yeetPickupPrefab;
-        private static HashSet<string> _blacklistTier = new HashSet<string>();
-        private static HashSet<string> _blacklistItem = new HashSet<string>();
+        private static readonly HashSet<string> _blacklistTier = new HashSet<string>();
+        private static readonly HashSet<string> _blacklistItem = new HashSet<string>();
 
         private static readonly RoR2.ConVar.BoolConVar allowYeet = new RoR2.ConVar.BoolConVar("yeet_on", ConVarFlags.SenderMustBeServer, "1", "Boolean (0/1). If 0, all mod functionality will be temporarily disabled.");
 
@@ -142,7 +142,6 @@ namespace ThinkInvisible.Yeet {
         }
 
         [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         private static void ConCmdYeet(ConCommandArgs args) {
             if(!allowYeet.value) {
                 if(args.sender)
@@ -383,6 +382,7 @@ namespace ThinkInvisible.Yeet {
         public CharacterBody yeeter;
         public float age = 0f;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Used by UnityEngine")]
         void FixedUpdate() {
             age += Time.fixedDeltaTime;
         }
@@ -401,7 +401,7 @@ namespace ThinkInvisible.Yeet {
                 : ((int)GetComponent<RoR2.UI.ItemIcon>().itemIndex).ToString();
 			if(NetworkUser.readOnlyLocalPlayersList.Count > 0) {
                 //RoR2.Console.instance.RunClientCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet", new string[]{((int)ind).ToString(), totalTime.ToString("N3")});
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], $"yeet {ind} {(isEquipment ? 1 : 0)} {totalTime.ToString("N4")}");
+                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], $"yeet {ind} {(isEquipment ? 1 : 0)} {totalTime:N4}");
             } else
                 YeetPlugin._logger.LogError("Received inventory click event with no active local players!");
         }
