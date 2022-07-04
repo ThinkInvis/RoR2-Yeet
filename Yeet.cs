@@ -272,10 +272,11 @@ namespace ThinkInvisible.Yeet {
                     attemptThrowCount = Mathf.CeilToInt(count / ((-attemptThrowCount) * 100f));
                 throwCount = Mathf.Clamp(attemptThrowCount, 1, serverConfig.maxThrowCount);
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
-                Debug.Log(idef._itemTierDef.name);
+                var itier = ItemTierCatalog.GetItemTierDef(idef.tier);
+                Debug.Log(itier.name);
                 if((serverConfig.preventHidden && idef.hidden)
                     || (serverConfig.preventCantRemove && !idef.canRemove)
-                    || _blacklistTier.Contains(idef._itemTierDef.name)
+                    || _blacklistTier.Contains(itier.name)
                     || _blacklistItem.Contains(idef.nameToken))
                     return;
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
