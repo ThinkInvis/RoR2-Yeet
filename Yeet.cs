@@ -276,7 +276,6 @@ namespace ThinkInvisible.Yeet {
                 throwCount = Mathf.Clamp(attemptThrowCount, 1, serverConfig.maxThrowCount);
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
                 var itier = ItemTierCatalog.GetItemTierDef(idef.tier);
-                Debug.Log(itier.name);
                 if((serverConfig.preventHidden && idef.hidden)
                     || (serverConfig.preventCantRemove && !idef.canRemove)
                     || (itier == null
