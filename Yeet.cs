@@ -50,9 +50,11 @@ namespace ThinkInvisible.Yeet {
             public bool preventCantRemove { get; private set; } = true;
 
             [AutoConfig("Enter ItemTier names to prevent them from being dropped. Comma-delimited, whitespace is trimmed. Only works on vanilla tiers for now.")]
+            [AutoConfigRoOString()]
             public string blacklistTier { get; private set; } = "NoTier, Lunar, VoidTier1, VoidTier2, VoidTier3";
 
             [AutoConfig("Enter item/equipment name tokens (found in game language files) to prevent them from being dropped. Comma-delimited, whitespace is trimmed.")]
+            [AutoConfigRoOString()]
             public string blacklistItem { get; private set; } = "";
 
             [AutoConfig("If true, dropped items will not work with the Recycler equipment.")]
