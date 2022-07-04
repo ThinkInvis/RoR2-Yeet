@@ -73,6 +73,11 @@ namespace ThinkInvisible.Yeet {
             [AutoConfigRoOSlider("{0:N1} m/s", 0f, 500f)]
             public float highThrowForce { get; private set; } = 150f;
 
+            [AutoConfig("Maximum of one type of item to allow dropping at once.",
+                AutoConfigFlags.None, 1, int.MaxValue)]
+            [AutoConfigRoOSlider("{0:N0}", 1, 100)]
+            public int maxThrowCount { get; private set; } = 1;
+
             [AutoConfig("If greater than 0, time (sec) of cooldown after dropping an item before the dropper can pick it back up.",
                 AutoConfigFlags.None, 0f, float.MaxValue)]
             [AutoConfigRoOSlider("{0:N1} s", 0f, 300f)]
@@ -89,6 +94,16 @@ namespace ThinkInvisible.Yeet {
             AutoConfigFlags.None, 0f, float.MaxValue)]
             [AutoConfigRoOSlider("{0:N1} s", 0f, 10f)]
             public float highThrowTime { get; private set; } = 2f;
+
+            [AutoConfig("Items to attempt to drop with a left click. May be limited by server. Negative values are converted to a percentage.",
+            AutoConfigFlags.None, -100, int.MaxValue)]
+            [AutoConfigRoOSlider("{0:N0}", -100, 100)]
+            public int primaryQuantity { get; private set; } = 1;
+
+            [AutoConfig("Items to attempt to drop with a right click. May be limited by server. Negative values are converted to a percentage.",
+            AutoConfigFlags.None, -100, int.MaxValue)]
+            [AutoConfigRoOSlider("{0:N0}", -100, 100)]
+            public int secondaryQuantity { get; private set; } = 1;
         }
 
         public static readonly ServerConfig serverConfig = new ServerConfig();
@@ -141,7 +156,7 @@ namespace ThinkInvisible.Yeet {
             };
         }
 
-        [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force.")]
+        [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force. Argument 4: item count.")]
         private static void ConCmdYeet(ConCommandArgs args) {
             if(!allowYeet.value) {
                 if(args.sender)
@@ -224,6 +239,7 @@ namespace ThinkInvisible.Yeet {
             }
 
             float throwForce = Mathf.Lerp(serverConfig.lowThrowForce, serverConfig.highThrowForce, Mathf.Clamp01(args.TryGetArgFloat(2) ?? 0f));
+            int throwCount = 1;
 
             PickupIndex pickup;
             if(isEquipment) {
@@ -250,6 +266,10 @@ namespace ThinkInvisible.Yeet {
                     _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
                     return;
                 }
+                var attemptThrowCount = args.TryGetArgInt(3) ?? 1;
+                if(attemptThrowCount < 0)
+                    attemptThrowCount = Mathf.CeilToInt(count / ((-attemptThrowCount) * 100f));
+                throwCount = Mathf.Clamp(attemptThrowCount, 1, serverConfig.maxThrowCount);
                 var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
                 Debug.Log(idef._itemTierDef.name);
                 if((serverConfig.preventHidden && idef.hidden)
@@ -261,22 +281,24 @@ namespace ThinkInvisible.Yeet {
                 pickup = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
             }
 
-            var obj = GameObject.Instantiate(PickupDropletController.pickupDropletPrefab, args.senderBody.inputBank.aimOrigin, Quaternion.identity);
-            var pdyd = obj.AddComponent<YeetData>();
-            pdyd.yeeter = args.senderBody;
-            var pdcComponent = obj.GetComponent<PickupDropletController>();
-            if(pdcComponent) {
-                pdcComponent.NetworkpickupIndex = pickup;
-                pdcComponent.createPickupInfo = new GenericPickupController.CreatePickupInfo {
-                    rotation = Quaternion.identity,
-                    pickupIndex = pickup
-                };
+            for(var i = 0; i < throwCount; i++) {
+                var obj = GameObject.Instantiate(PickupDropletController.pickupDropletPrefab, args.senderBody.inputBank.aimOrigin, Quaternion.identity);
+                var pdyd = obj.AddComponent<YeetData>();
+                pdyd.yeeter = args.senderBody;
+                var pdcComponent = obj.GetComponent<PickupDropletController>();
+                if(pdcComponent) {
+                    pdcComponent.NetworkpickupIndex = pickup;
+                    pdcComponent.createPickupInfo = new GenericPickupController.CreatePickupInfo {
+                        rotation = Quaternion.identity,
+                        pickupIndex = pickup
+                    };
+                }
+
+                var rbdy = obj.GetComponent<Rigidbody>();
+                rbdy.velocity = args.senderBody.inputBank.aimDirection * throwForce;
+                rbdy.AddTorque(Random.Range(150f, 120f) * Random.onUnitSphere);
+                NetworkServer.Spawn(obj);
             }
-                
-            var rbdy = obj.GetComponent<Rigidbody>();
-            rbdy.velocity = args.senderBody.inputBank.aimDirection * throwForce;
-            rbdy.AddTorque(Random.Range(150f, 120f) * Random.onUnitSphere);
-            NetworkServer.Spawn(obj);
 
             yd.age = 0;
         }
@@ -389,19 +411,26 @@ namespace ThinkInvisible.Yeet {
     }
     
 	public class YeetButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler {
-        float holdTime = 0f;
+        float holdTimeL = 0f;
+        float holdTimeR = 0f;
         public bool isEquipment = false;
 		void IPointerDownHandler.OnPointerDown(PointerEventData eventData) {
-            holdTime = Time.unscaledTime;
+            if(eventData.button == PointerEventData.InputButton.Left)
+                holdTimeL = Time.unscaledTime;
+            else if(eventData.button == PointerEventData.InputButton.Right)
+                holdTimeR = Time.unscaledTime;
 		}
         void IPointerUpHandler.OnPointerUp(PointerEventData eventData) {
-            float totalTime = Time.unscaledTime - holdTime;
+            var isL = eventData.button == PointerEventData.InputButton.Left;
+            var isR = eventData.button == PointerEventData.InputButton.Right;
+            if(!isL && !isR) return;
+            float totalTime = Time.unscaledTime - (isL ? holdTimeL : holdTimeR);
             var ind = isEquipment
                 ? ((int)GetComponent<RoR2.UI.EquipmentIcon>().targetInventory.GetEquipmentIndex()).ToString()
                 : ((int)GetComponent<RoR2.UI.ItemIcon>().itemIndex).ToString();
 			if(NetworkUser.readOnlyLocalPlayersList.Count > 0) {
                 //RoR2.Console.instance.RunClientCmd(NetworkUser.readOnlyLocalPlayersList[0], "yeet", new string[]{((int)ind).ToString(), totalTime.ToString("N3")});
-                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], $"yeet {ind} {(isEquipment ? 1 : 0)} {totalTime:N4}");
+                RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], $"yeet {ind} {(isEquipment ? 1 : 0)} {totalTime:N4} {(isL ? YeetPlugin.clientConfig.primaryQuantity : YeetPlugin.clientConfig.secondaryQuantity)}");
             } else
                 YeetPlugin._logger.LogError("Received inventory click event with no active local players!");
         }
