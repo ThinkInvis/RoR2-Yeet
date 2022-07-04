@@ -248,15 +248,25 @@ namespace ThinkInvisible.Yeet {
 
             PickupIndex pickup;
             if(isEquipment) {
+                var edef = EquipmentCatalog.GetEquipmentDef((EquipmentIndex)rawInd);
+                var ecolor = ColorCatalog.GetColorHexString(edef.colorIndex);
+                var failReasonBasis = $"Can't yeet <color=#{ecolor}>{Language.GetString(edef.nameToken)}</color>: ";
+
                 if(args.senderBody.inventory.GetEquipmentIndex() != (EquipmentIndex)rawInd) {
                     _logger.LogWarning("ConCmdYeet: someone's trying to drop an equipment they don't have");
+                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "you don't have it.");
                     return;
                 }
 
-                var edef = EquipmentCatalog.GetEquipmentDef((EquipmentIndex)rawInd);
-
-                if(edef.isLunar ? serverConfig.preventLunarEquipment : serverConfig.preventNonLunarEquipment)
+                if(edef.isLunar ? serverConfig.preventLunarEquipment : serverConfig.preventNonLunarEquipment) {
+                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "tier blacklisted by server.");
                     return;
+                }
+
+                if(_blacklistItem.Contains(edef.nameToken)) {
+                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "equipment blacklisted by server.");
+                    return;
+                }
 
                 args.senderBody.inventory.SetEquipmentIndex(EquipmentIndex.None);
 
@@ -266,23 +276,31 @@ namespace ThinkInvisible.Yeet {
                 var count = fakeInv
                     ? fakeInv.GetRealItemCount((ItemIndex)rawInd)
                     : args.senderBody.inventory.GetItemCount((ItemIndex) rawInd);
+                var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
+                var itier = ItemTierCatalog.GetItemTierDef(idef.tier);
+                var icolor = ColorCatalog.GetColorHexString(itier.colorIndex);
+                var failReasonBasis = $"Can't yeet <color=#{icolor}>{Language.GetString(idef.nameToken)}</color>: ";
                 if(count < 1) {
                     _logger.LogWarning("ConCmdYeet: someone's trying to drop an item they don't have any of");
+                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "you don't have any.");
                     return;
                 }
                 var attemptThrowCount = args.TryGetArgInt(3) ?? 1;
                 if(attemptThrowCount < 0)
                     attemptThrowCount = Mathf.CeilToInt(count / ((-attemptThrowCount) * 100f));
                 throwCount = Mathf.Clamp(attemptThrowCount, 1, serverConfig.maxThrowCount);
-                var idef = ItemCatalog.GetItemDef((ItemIndex)rawInd);
-                var itier = ItemTierCatalog.GetItemTierDef(idef.tier);
                 if((serverConfig.preventHidden && idef.hidden)
                     || (serverConfig.preventCantRemove && !idef.canRemove)
                     || (itier == null
                         ? serverConfig.preventTierless
-                        : _blacklistTier.Contains(itier.name))
-                    || _blacklistItem.Contains(idef.nameToken))
+                        : _blacklistTier.Contains(itier.name))) {
+                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "tier blacklisted by server.");
                     return;
+                }
+                if(_blacklistItem.Contains(idef.nameToken)) {
+                    NetUtil.ServerSendChatMsg(args.sender, failReasonBasis + "item blacklisted by server.");
+                    return;
+                }
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
                 pickup = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
             }
