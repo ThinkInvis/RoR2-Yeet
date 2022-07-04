@@ -54,7 +54,7 @@ namespace ThinkInvisible.Yeet {
 
             [AutoConfig("Enter ItemTierDef names to prevent them from being dropped. Comma-delimited, whitespace is trimmed. Only works on vanilla tiers for now.")]
             [AutoConfigRoOString()]
-            public string blacklistTier { get; private set; } = "LunarDef, VoidTier1Def, VoidTier2Def, VoidTier3Def, VoidBossDef";
+            public string blacklistTier { get; private set; } = "LunarTierDef, VoidTier1Def, VoidTier2Def, VoidTier3Def, VoidBossDef";
 
             [AutoConfig("Enter item/equipment name tokens (found in game language files) to prevent them from being dropped. Comma-delimited, whitespace is trimmed.")]
             [AutoConfigRoOString()]
