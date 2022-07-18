@@ -1,5 +1,9 @@
 ﻿﻿# Yeet Changelog
 
+**3.0.1**
+
+- Fixed only one item being removed from inventory while dropping multiple copies of that item.
+
 **3.0.0**
 
 - Made serverside blacklist configs more granular.

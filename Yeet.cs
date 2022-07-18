@@ -22,7 +22,7 @@ namespace ThinkInvisible.Yeet {
     [BepInDependency(TILER2Plugin.ModGuid, TILER2Plugin.ModVer)]
     [R2APISubmoduleDependency(nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class YeetPlugin:BaseUnityPlugin {
-        public const string ModVer = "3.0.0";
+        public const string ModVer = "3.0.1";
         public const string ModName = "Yeet";
         public const string ModGuid = "com.ThinkInvisible.Yeet";
 

@@ -39,6 +39,10 @@ Config options include (default values):
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-Yeet/blob/master/changelog.md
 
+**3.0.1**
+
+- Fixed only one item being removed from inventory while dropping multiple copies of that item.
+
 **3.0.0**
 
 - Made serverside blacklist configs more granular.
@@ -67,7 +71,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **2.1.0**
 
 - Added a server convar (`yeet_on`) that enables/disables most mod functionality.
-
-**2.0.1**
-
-- Added a config for disabling using Recycler on dropped items.
