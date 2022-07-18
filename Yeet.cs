@@ -302,7 +302,7 @@ namespace ThinkInvisible.Yeet {
                 var attemptThrowCount = args.TryGetArgInt(3) ?? 1;
                 if(attemptThrowCount < 0)
                     attemptThrowCount = Mathf.CeilToInt(count / ((-attemptThrowCount) * 100f));
-                throwCount = Mathf.Clamp(attemptThrowCount, 1, serverConfig.maxThrowCount);
+                throwCount = Mathf.Clamp(attemptThrowCount, 1, Mathf.Min(serverConfig.maxThrowCount, count));
                 if((serverBlacklist.preventHidden && idef.hidden)
                     || (serverBlacklist.preventCantRemove && !idef.canRemove)
                     || ((!itier)
