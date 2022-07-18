@@ -42,6 +42,7 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **3.0.1**
 
 - Fixed only one item being removed from inventory while dropping multiple copies of that item.
+- Slightly optimized order of checks before dropping an item.
 
 **3.0.0**
 

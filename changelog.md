@@ -3,6 +3,7 @@
 **3.0.1**
 
 - Fixed only one item being removed from inventory while dropping multiple copies of that item.
+- Slightly optimized order of checks before dropping an item.
 
 **3.0.0**
 
