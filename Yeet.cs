@@ -315,7 +315,7 @@ namespace ThinkInvisible.Yeet {
                     NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: item blacklisted by server.");
                     return;
                 }
-                args.senderBody.inventory.RemoveItem((ItemIndex)rawInd);
+                args.senderBody.inventory.RemoveItem((ItemIndex)rawInd, throwCount);
                 pickup = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
             }
 
