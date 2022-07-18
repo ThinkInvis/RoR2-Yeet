@@ -299,10 +299,6 @@ namespace ThinkInvisible.Yeet {
                     NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: you don't have any.");
                     return;
                 }
-                var attemptThrowCount = args.TryGetArgInt(3) ?? 1;
-                if(attemptThrowCount < 0)
-                    attemptThrowCount = Mathf.CeilToInt(count / ((-attemptThrowCount) * 100f));
-                throwCount = Mathf.Clamp(attemptThrowCount, 1, Mathf.Min(serverConfig.maxThrowCount, count));
                 if((serverBlacklist.preventHidden && idef.hidden)
                     || (serverBlacklist.preventCantRemove && !idef.canRemove)
                     || ((!itier)
@@ -315,6 +311,10 @@ namespace ThinkInvisible.Yeet {
                     NetUtil.ServerSendChatMsg(args.sender, $"Can't yeet {pickupText}: item blacklisted by server.");
                     return;
                 }
+                var attemptThrowCount = args.TryGetArgInt(3) ?? 1;
+                if(attemptThrowCount < 0)
+                    attemptThrowCount = Mathf.CeilToInt(count / ((-attemptThrowCount) * 100f));
+                throwCount = Mathf.Clamp(attemptThrowCount, 1, Mathf.Min(serverConfig.maxThrowCount, count));
                 args.senderBody.inventory.RemoveItem((ItemIndex)rawInd, throwCount);
                 pickup = PickupCatalog.FindPickupIndex((ItemIndex)rawInd);
             }
