@@ -1,5 +1,12 @@
 ﻿﻿# Yeet Changelog
 
+**3.0.2**
+
+- For developers: Now uses local NuGet config, removing the requirement for manual addition of a source.
+- Updated R2API dependency to 5.0.6 (now using split assembly).
+- Updated TILER2 dependency to 7.3.4.
+- Updated BepInExPack dependency to 5.4.2103.
+
 **3.0.1**
 
 - Fixed only one item being removed from inventory while dropping multiple copies of that item.

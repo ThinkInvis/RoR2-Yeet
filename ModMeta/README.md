@@ -39,6 +39,13 @@ Config options include (default values):
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-Yeet/blob/master/changelog.md
 
+**3.0.2**
+
+- For developers: Now uses local NuGet config, removing the requirement for manual addition of a source.
+- Updated R2API dependency to 5.0.6 (now using split assembly).
+- Updated TILER2 dependency to 7.3.4.
+- Updated BepInExPack dependency to 5.4.2103.
+
 **3.0.1**
 
 - Fixed only one item being removed from inventory while dropping multiple copies of that item.
@@ -68,7 +75,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 **2.1.1**
 
 - Fixed `yeet_on` convar defaulting to 0 (intended default value is 1).
-
-**2.1.0**
-
-- Added a server convar (`yeet_on`) that enables/disables most mod functionality.
