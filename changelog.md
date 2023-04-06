@@ -2,6 +2,7 @@
 
 **3.0.2**
 
+- AllowYeet is now a config option instead of a ConVar.
 - For developers: Now uses local NuGet config, removing the requirement for manual addition of a source.
 - Updated R2API dependency to 5.0.6 (now using split assembly).
 - Updated TILER2 dependency to 7.3.4.

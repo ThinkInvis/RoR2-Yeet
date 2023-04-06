@@ -62,6 +62,10 @@ namespace ThinkInvisible.Yeet {
         }
 
         public class ServerConfig : AutoConfigContainer {
+            [AutoConfig("Disable/enable control for the entire mod. Set to false to temporarily disable all mod functionality.")]
+            [AutoConfigRoOCheckbox()]
+            public bool allowYeet { get; private set; } = true;
+
             [AutoConfig("If true, dropped items will not work with the Recycler equipment.")]
             [AutoConfigRoOCheckbox()]
             public bool preventRecycling { get; private set; } = false;
@@ -126,8 +130,6 @@ namespace ThinkInvisible.Yeet {
         private static readonly HashSet<string> _blacklistTier = new();
         private static readonly HashSet<string> _blacklistItem = new();
 
-        private static readonly RoR2.ConVar.BoolConVar allowYeet = new("yeet_on", ConVarFlags.SenderMustBeServer, "1", "Boolean (0/1). If 0, all mod functionality will be temporarily disabled.");
-
         public void Awake() {
             _logger = this.Logger;
             ConfigFile cfgFile = new(Path.Combine(Paths.ConfigPath, ModGuid + ".cfg"), true);
@@ -174,7 +176,7 @@ namespace ThinkInvisible.Yeet {
 
         [ConCommand(commandName = "yeet", flags = ConVarFlags.ExecuteOnServer, helpText = "Requests the server to drop an item from your character. Argument 1: item index or partial name. Argument 2: if true, drop equipment instead. Argument 3: throw force. Argument 4: item count.")]
         private static void ConCmdYeet(ConCommandArgs args) {
-            if(!allowYeet.value) {
+            if(!serverConfig.allowYeet) {
                 if(args.sender)
                     NetUtil.ServerSendChatMsg(args.sender, "Yeet mod has been temporarily disabled by the server host.");
                 return;
