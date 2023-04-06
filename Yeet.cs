@@ -9,18 +9,18 @@ using UnityEngine.EventSystems;
 using UnityEngine.Networking;
 using R2API;
 using UnityEngine.AddressableAssets;
-using R2API.Networking.Interfaces;
 using TILER2;
 using Path = System.IO.Path;
 using System.Collections.Generic;
 using System;
 using Random = UnityEngine.Random;
 
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
+
 namespace ThinkInvisible.Yeet {
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [BepInDependency(TILER2Plugin.ModGuid, TILER2Plugin.ModVer)]
-    [R2APISubmoduleDependency(nameof(CommandHelper), nameof(R2API.Networking.NetworkingAPI))]
     public class YeetPlugin:BaseUnityPlugin {
         public const string ModVer = "3.0.1";
         public const string ModName = "Yeet";
@@ -151,8 +151,6 @@ namespace ThinkInvisible.Yeet {
             On.RoR2.GenericPickupController.CreatePickup += GenericPickupController_CreatePickup;
             On.RoR2.GenericPickupController.GetInteractability += GenericPickupController_GetInteractability;
             On.RoR2.GenericPickupController.OnTriggerStay += GenericPickupController_OnTriggerStay;
-
-            CommandHelper.AddToConsoleWhenReady();
 
             var addrLoad = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/GenericPickup.prefab");
             addrLoad.Completed += (obj) => {
