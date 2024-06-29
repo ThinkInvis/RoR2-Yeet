@@ -385,35 +385,22 @@ namespace ThinkInvisible.Yeet {
                     self.alive = false;
                     self.createPickupInfo.position = self.transform.position;
 
-                    bool success = true;
-                    //not raised in vanilla because command artifact is the only thing that uses it, but just in case
-                    var multicast = (System.MulticastDelegate)typeof(PickupDropletController).GetFieldCached(nameof(PickupDropletController.onDropletHitGroundServer)).GetValue(null);
-                    if(multicast != null) {
-                        foreach(var del in multicast.GetInvocationList()) {
-                            var args = new object[] { self.createPickupInfo, success };
-                            del.Method.Invoke(del.Target, args);
-                            self.createPickupInfo = (GenericPickupController.CreatePickupInfo)args[0];
-                            success = (bool)args[1];
-                        }
+                    var newPickup = Instantiate(yeetPickupPrefab, self.createPickupInfo.position, self.createPickupInfo.rotation);
+                    var pickupController = newPickup.GetComponent<GenericPickupController>();
+                    if(pickupController) {
+                        pickupController.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
+                        if(serverConfig.preventRecycling)
+                            pickupController.NetworkRecycled = true;
                     }
-                    if(success) {
-                        var newPickup = Instantiate(yeetPickupPrefab, self.createPickupInfo.position, self.createPickupInfo.rotation);
-                        var pickupController = newPickup.GetComponent<GenericPickupController>();
-                        if(pickupController) {
-                            pickupController.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
-                            if(serverConfig.preventRecycling)
-                                pickupController.NetworkRecycled = true;
-                        }
-                        var pickupIndexNetworker = newPickup.GetComponent<PickupIndexNetworker>();
-                        if(pickupIndexNetworker)
-                            pickupIndexNetworker.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
-                        //no options, should only ever yeet one item
-                        var pickupYeetData = newPickup.GetComponent<YeetData>();
-                        pickupYeetData.age = yd.age;
-                        pickupYeetData.yeeter = yd.yeeter;
+                    var pickupIndexNetworker = newPickup.GetComponent<PickupIndexNetworker>();
+                    if(pickupIndexNetworker)
+                        pickupIndexNetworker.NetworkpickupIndex = self.createPickupInfo.pickupIndex;
+                    //no options, should only ever yeet one item
+                    var pickupYeetData = newPickup.GetComponent<YeetData>();
+                    pickupYeetData.age = yd.age;
+                    pickupYeetData.yeeter = yd.yeeter;
 
-                        NetworkServer.Spawn(newPickup);
-                    }
+                    NetworkServer.Spawn(newPickup);
 
                     Destroy(self.gameObject);
                 }
