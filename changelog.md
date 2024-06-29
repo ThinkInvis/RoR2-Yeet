@@ -1,5 +1,9 @@
 ﻿﻿# Yeet Changelog
 
+**3.0.3**
+
+- Fixed fatal errors caused by the base game Devotion Update.
+
 **3.0.2**
 
 - AllowYeet is now a config option instead of a ConVar.

@@ -39,6 +39,10 @@ Config options include (default values):
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-Yeet/blob/master/changelog.md
 
+**3.0.3**
+
+- Fixed fatal errors caused by the base game Devotion Update.
+
 **3.0.2**
 
 - AllowYeet is now a config option instead of a ConVar.
@@ -72,7 +76,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Moved configs from manual implementation to TILER2.AutoConfig. Added Risk Of Options support.
 - Changed TILER2 dependency type to a hard dependency (v7.0.1).
 - Recompiled for latest game version.
-
-**2.1.1**
-
-- Fixed `yeet_on` convar defaulting to 0 (intended default value is 1).
