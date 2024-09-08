@@ -39,6 +39,10 @@ Config options include (default values):
 
 The 5 latest updates are listed below. For a full changelog, see: https://github.com/ThinkInvis/RoR2-Yeet/blob/master/changelog.md
 
+**3.0.4**
+
+- Recompiled for Seekers of the Storm. No other changes appear to be necessary.
+
 **3.0.3**
 
 - Fixed fatal errors caused by the base game Devotion Update.
@@ -70,9 +74,3 @@ The 5 latest updates are listed below. For a full changelog, see: https://github
 - Removed code that was still unnecessarily treating TILER2 as a soft dependency.
 - Switched to TILER2 NetUtil for networked chat messages, was previously using an internal implementation.
 - Updated dependencies, and updated lang version to C#9.
-
-**2.2.0**
-
-- Moved configs from manual implementation to TILER2.AutoConfig. Added Risk Of Options support.
-- Changed TILER2 dependency type to a hard dependency (v7.0.1).
-- Recompiled for latest game version.

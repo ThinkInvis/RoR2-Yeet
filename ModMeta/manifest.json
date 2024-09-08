@@ -1,12 +1,12 @@
 {
     "name": "Yeet",
-    "version_number": "3.0.3",
+    "version_number": "3.0.4",
     "website_url": "https://github.com/ThinkInvis/RoR2-Yeet",
     "description": "Toss all your items! To other players, or right under a boss, or off a cliff...",
     "dependencies": [
         "bbepis-BepInExPack-5.4.2103",
-        "RiskofThunder-R2API_Core-5.1.0",
-        "RiskofThunder-R2API_Prefab-1.0.3",
-		"ThinkInvis-TILER2-7.4.0"
+        "RiskofThunder-R2API_Core-5.1.1",
+        "RiskofThunder-R2API_Prefab-1.0.4",
+		"ThinkInvis-TILER2-7.4.1"
     ]
 }

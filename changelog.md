@@ -1,5 +1,9 @@
 ﻿﻿# Yeet Changelog
 
+**3.0.4**
+
+- Recompiled for Seekers of the Storm. No other changes appear to be necessary.
+
 **3.0.3**
 
 - Fixed fatal errors caused by the base game Devotion Update.
